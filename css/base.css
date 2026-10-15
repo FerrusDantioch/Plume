@@ -401,6 +401,52 @@ dialog[open] {
   accent-color: var(--accent);
 }
 
+/* --- Fenêtre « Exporter » : une grande carte par format ------------------- */
+.choix-export {
+  display: grid;
+  gap: 8px;
+}
+
+.option-export {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 14px;
+  row-gap: 2px;
+  min-height: var(--cible);
+  padding: 12px 14px;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-carte);
+  background: var(--surface);
+  color: var(--texte);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color var(--duree), border-color var(--duree);
+}
+
+.option-export:hover {
+  background: var(--survol);
+  border-color: var(--accent);
+}
+
+.option-export .icone {
+  grid-row: span 2;
+  width: 28px;
+  height: 28px;
+  color: var(--accent);
+}
+
+.option-nom {
+  font-weight: 700;
+}
+
+.option-detail {
+  color: var(--discret);
+  font-size: 0.9rem;
+}
+
 /* --- Menu principal ------------------------------------------------------ */
 dialog.menu {
   margin: 0;

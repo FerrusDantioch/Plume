@@ -43,7 +43,10 @@
   <!-- Icônes (un seul style : traits arrondis de 24 × 24). -->
   <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <symbol id="i-documents" viewBox="0 0 24 24"><path d="M9 3h6l5 5v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14.5 3v5.5H20"/><path d="M4 8v11a2 2 0 0 0 2 2h8"/></symbol>
-    <symbol id="i-pdf" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11v6"/><path d="m9 14 3 3 3-3"/></symbol>
+    <symbol id="i-exporter" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11v6"/><path d="m9 14 3 3 3-3"/></symbol>
+    <symbol id="i-format-pdf" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8.5 12h7M8.5 15.5h7M8.5 19h4"/></symbol>
+    <symbol id="i-format-word" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="m8 12 1.5 6 2.5-4.5 2.5 4.5L16 12"/></symbol>
+    <symbol id="i-format-texte" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M12 12.5V19"/></symbol>
     <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
     <symbol id="i-annuler" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
     <symbol id="i-retablir" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></symbol>
@@ -86,9 +89,9 @@
         <input id="titre-document" class="champ-titre" type="text" aria-label="Titre du document" placeholder="Sans titre" maxlength="200" autocomplete="off" spellcheck="true" lang="fr">
         <p id="etat-enregistrement" class="etat-enregistrement" role="status" aria-live="polite"></p>
       </div>
-      <button id="bouton-pdf" class="bouton bouton-principal" type="button" title="Exporter en PDF (Ctrl+P)">
-        <svg class="icone" aria-hidden="true"><use href="#i-pdf"></use></svg>
-        <span class="libelle-large">Exporter en PDF</span>
+      <button id="bouton-exporter" class="bouton bouton-principal" type="button" aria-haspopup="dialog" aria-controls="fenetre-export" title="Exporter le document : PDF, Word ou texte">
+        <svg class="icone" aria-hidden="true"><use href="#i-exporter"></use></svg>
+        <span class="libelle-large">Exporter</span>
       </button>
       <button id="bouton-menu" class="bouton bouton-icone" type="button" aria-haspopup="dialog" aria-controls="fenetre-menu" aria-label="Menu" title="Menu">
         <svg class="icone" aria-hidden="true"><use href="#i-menu"></use></svg>
@@ -259,6 +262,39 @@
     <div class="fenetre-actions">
       <button class="bouton" type="button" data-fermer="non">Annuler</button>
       <button class="bouton bouton-principal" type="button" data-fermer="oui">Confirmer</button>
+    </div>
+  </dialog>
+
+  <!-- Choix du format d'export -->
+  <dialog id="fenetre-export" aria-labelledby="titre-export" aria-describedby="description-export" data-fermeture-exterieure>
+    <div class="fenetre-entete">
+      <h2 id="titre-export">Exporter le document</h2>
+      <button class="bouton bouton-icone bouton-discret" type="button" data-fermer aria-label="Fermer" title="Fermer">
+        <svg class="icone" aria-hidden="true"><use href="#i-fermer"></use></svg>
+      </button>
+    </div>
+    <div class="fenetre-corps">
+      <p id="description-export" class="texte-discret">Choisis un format. Le fichier portera le titre du document.</p>
+      <div class="choix-export">
+        <button class="option-export" type="button" data-format="pdf" aria-labelledby="nom-pdf" aria-describedby="detail-pdf">
+          <svg class="icone" aria-hidden="true"><use href="#i-format-pdf"></use></svg>
+          <span id="nom-pdf" class="option-nom">PDF</span>
+          <span id="detail-pdf" class="option-detail">Pour imprimer ou envoyer un document figé.</span>
+        </button>
+        <button class="option-export" type="button" data-format="docx" aria-labelledby="nom-docx" aria-describedby="detail-docx">
+          <svg class="icone" aria-hidden="true"><use href="#i-format-word"></use></svg>
+          <span id="nom-docx" class="option-nom">Word (.docx)</span>
+          <span id="detail-docx" class="option-detail">Pour continuer le texte dans Word ou Google Docs.</span>
+        </button>
+        <button class="option-export" type="button" data-format="txt" aria-labelledby="nom-txt" aria-describedby="detail-txt">
+          <svg class="icone" aria-hidden="true"><use href="#i-format-texte"></use></svg>
+          <span id="nom-txt" class="option-nom">Texte brut (.txt)</span>
+          <span id="detail-txt" class="option-detail">Le texte seul, sans mise en forme, lisible partout.</span>
+        </button>
+      </div>
+    </div>
+    <div class="fenetre-actions">
+      <button class="bouton" type="button" data-fermer>Annuler</button>
     </div>
   </dialog>
 

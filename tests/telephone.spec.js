@@ -72,6 +72,18 @@ test('des flèches montrent qu’il reste des boutons et font défiler la barre'
   await expect(droite).toBeVisible();
 });
 
+test('la fenêtre « Exporter » tient dans l’écran, avec de grandes zones à toucher', async ({ page }) => {
+  await page.tap('#bouton-exporter');
+  const fenetre = await page.locator('#fenetre-export').boundingBox();
+  expect(fenetre.x).toBeGreaterThanOrEqual(0);
+  expect(fenetre.x + fenetre.width).toBeLessThanOrEqual(390);
+  expect(fenetre.y + fenetre.height).toBeLessThanOrEqual(844);
+  for (const choix of await page.locator('.option-export').all()) {
+    const zone = await choix.boundingBox();
+    expect(zone.height).toBeGreaterThanOrEqual(44);
+  }
+});
+
 test('tous les boutons font au moins 44 × 44 px', async ({ page }) => {
   const trop_petits = await page.evaluate(() =>
     [...document.querySelectorAll('.barre-app button, .barre-app input, .barre-outils button, .barre-outils select')]

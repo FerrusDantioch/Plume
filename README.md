@@ -25,11 +25,14 @@ Adresse : `https://ferrusdantioch.github.io/Plume/` (dépôt GitHub `FerrusDanti
 - Collage toujours en texte brut (chaque ligne devient un paragraphe).
 - Enregistrement automatique, plusieurs documents, compteur de mots et de caractères.
 - Sauvegarde de tous les documents dans un fichier, et restauration.
-- Export PDF (feuille blanche, texte noir, couleurs conservées).
+- Bouton « Exporter » : trois formats, le fichier porte le titre du document.
+  - PDF : pour imprimer ou envoyer un document figé (feuille blanche, texte noir, couleurs conservées).
+  - Word (.docx) : pour continuer le texte dans Word, Google Docs ou LibreOffice.
+  - Texte brut (.txt) : le texte seul, sans mise en forme.
 - Trois thèmes : Omni-système (par défaut), Sombre, Clair.
 
 Raccourcis clavier : Ctrl+B (gras), Ctrl+I (italique), Ctrl+U (souligné),
-Ctrl+S (enregistrer), Ctrl+P (exporter en PDF), Ctrl+Z (annuler),
+Ctrl+S (enregistrer), Ctrl+P (exporter directement en PDF), Ctrl+Z (annuler),
 Ctrl+Y (rétablir), Maj+Entrée (aller à la ligne sans changer de paragraphe).
 
 ---
@@ -110,7 +113,7 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
   Le manifeste est un fichier de données (JSON) : il ne peut pas lire `config.js`,
   c'est pourquoi le nom y est recopié. Un test automatique vérifie que les deux
   correspondent. Le titre de la page et la fenêtre « À propos » suivent `config.js`.
-- **Version** : dans `js/config.js`, ligne `version: '1.0.1',` (version actuelle).
+- **Version** : dans `js/config.js`, ligne `version: '1.0.2',` (version actuelle).
 - **Ne change jamais** `idStockage: 'plume'` : c'est le nom de la base de données ;
   le changer rendrait les documents existants invisibles.
 - **Icônes** : elles sont créées par `outils/creer-icones.py` (Python et la
@@ -130,6 +133,23 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
 - Sur Firefox, au premier enregistrement, une question peut apparaître
   (« stocker des données de façon persistante ») : réponds « Autoriser ». Cela
   protège les documents contre un effacement automatique quand le disque est plein.
+
+---
+
+## 5 bis. Ouvrir un document exporté dans Word ou Google Docs
+
+**Sur Android**
+
+1. Dans Plume, touche « Exporter », puis « Word (.docx) ».
+2. Ouvre l'application « Fichiers » (ou « Mes fichiers »), puis le dossier « Téléchargements ».
+3. Touche le fichier. Choisis « Docs » (Google Docs) ou « Word ».
+
+**Sur ordinateur**
+
+- Word ou LibreOffice : double-clique sur le fichier dans le dossier « Téléchargements ».
+- Google Docs : ouvre <https://drive.google.com>, clique sur « Nouveau », puis
+  « Importer un fichier », choisis le fichier ; ensuite, clique dessus avec le
+  bouton droit, puis « Ouvrir avec » et « Google Docs ».
 
 ---
 
@@ -173,6 +193,16 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
     fichiers `fonts/LICENCE-*.txt`). Literata « 600 italique » a été ajoutée pour un
     gras-italique net.
 
+13. **Export Word (.docx)** : le fichier est fabriqué sur l'appareil, sans aucun
+    service extérieur. Polices : Literata reste Literata (Google Docs la propose ;
+    Word la remplace par une police à empattements si elle n'est pas installée),
+    « Sans-serif » devient Arial, « Machine à écrire » reste JetBrains Mono (Word la
+    remplace par Courier New si elle manque). Le surlignage garde sa couleur exacte
+    (dans Word, il apparaît comme une « trame de fond »).
+14. **Export texte brut (.txt)** : encodage UTF-8 avec marque d'encodage et fins
+    de ligne Windows, pour que les accents s'affichent partout.
+15. **Pas d'export Markdown** pour l'instant : ce format pourrait induire certains
+    utilisateurs en erreur.
 ---
 
 ## 7. Limites connues
@@ -215,6 +245,10 @@ js/barre-outils.js     barre d'outils
 js/documents.js        documents et enregistrement automatique
 js/tiroir-documents.js panneau « Mes documents »
 js/impression.js       export PDF
+js/exporter.js         fenêtre « Exporter » (choix du format)
+js/export-docx.js      export Word (.docx)
+js/export-texte.js     export texte brut (.txt)
+js/zip.js              fabrication d'archives ZIP            (commun à la suite)
 fonts/                 polices (.woff2) et leurs licences
 icons/                 icônes de l'application
 assets/                logo de l'Omni-système
@@ -257,10 +291,12 @@ L'analyse du PDF demande aussi Python 3 avec `pdfplumber` et `pypdfium2`
 8. Copier un texte en couleur depuis une page web et le coller : il arrive sans couleur ni police étrangère.
 9. Taper un texte puis fermer l'onglet aussitôt ; rouvrir : le texte est là.
 10. Menu → thème Clair, recharger : le thème Clair reste, sans flash.
-11. Exporter en PDF : le fichier proposé porte le titre du document ; le PDF est blanc, texte noir, couleurs conservées.
-12. Couper le réseau (mode avion), recharger : l'application s'ouvre et enregistre.
-13. Android : pendant la frappe, le clavier ouvert, la barre d'outils reste visible et défile au doigt.
-14. Android : Menu → Installer l'application ; l'icône violette apparaît sur l'écran d'accueil.
+11. Exporter → PDF : le fichier proposé porte le titre du document ; le PDF est blanc, texte noir, couleurs conservées.
+12. Exporter → Word (.docx), puis ouvrir le fichier dans Word ou Google Docs : titres, gras, couleurs, surlignage et listes sont conservés.
+13. Exporter → Texte brut (.txt), puis ouvrir le fichier : les accents s'affichent correctement.
+14. Couper le réseau (mode avion), recharger : l'application s'ouvre et enregistre.
+15. Android : pendant la frappe, le clavier ouvert, la barre d'outils reste visible et défile au doigt.
+16. Android : Menu → Installer l'application ; l'icône violette apparaît sur l'écran d'accueil.
 
 ---
 

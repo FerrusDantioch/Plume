@@ -11,6 +11,7 @@ import { Documents, titreAffiche } from './documents.js';
 import { TiroirDocuments, dateLisible } from './tiroir-documents.js';
 import { initialiserFenetres, ouvrirFenetre, demander, informer, afficherMessage, remplirAPropos } from './ui.js';
 import { ExportPdf } from './impression.js';
+import { Exporteur } from './exporter.js';
 import { demarrerServiceWorker, estInstallee, installationPossible, installer, surChangementInstallation } from './pwa.js';
 
 const CONFIG = globalThis.CONFIG_APP;
@@ -85,14 +86,23 @@ async function demarrer() {
     editeur,
   });
 
-  // --- Export PDF ---
+  // --- Export : PDF (impression), Word, texte brut ---
+  const titreDuDocument = () => titreAffiche({ titre: champTitre.value });
   const exportPdf = new ExportPdf({
     preferences,
     fenetreAide: $('fenetre-aide-pdf'),
-    titre: () => titreAffiche({ titre: champTitre.value }),
+    titre: titreDuDocument,
     avant: () => documents.enregistrer(),
   });
-  $('bouton-pdf').addEventListener('click', (e) => exportPdf.exporter(e.currentTarget));
+  new Exporteur({
+    fenetre: $('fenetre-export'),
+    bouton: $('bouton-exporter'),
+    exportPdf,
+    editeur,
+    titre: titreDuDocument,
+    avant: () => documents.enregistrer(),
+    application: CONFIG.nom,
+  });
 
   // --- Menu ---
   const menu = $('fenetre-menu');

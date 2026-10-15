@@ -16,6 +16,11 @@ function pythonDisponible() {
   }
 }
 
+async function choisirExport(page, format) {
+  await page.click('#bouton-exporter');
+  await page.locator(`#fenetre-export [data-format="${format}"]`).click();
+}
+
 async function preparerDocument(page) {
   await ouvrir(page);
   await page.fill('#titre-document', 'Mon rapport');
@@ -36,7 +41,7 @@ test('le titre du document sert de nom au fichier, l’aide ne s’affiche qu’
       window.dispatchEvent(new Event('afterprint'));
     };
   });
-  await page.click('#bouton-pdf');
+  await choisirExport(page, 'pdf');
   const aide = page.locator('#fenetre-aide-pdf');
   await expect(aide).toBeVisible();
   await expect(aide).toContainText('Dans la fenêtre qui s\'ouvre, choisis « Enregistrer au format PDF » comme destination.');
@@ -46,7 +51,7 @@ test('le titre du document sert de nom au fichier, l’aide ne s’affiche qu’
   await page.waitForTimeout(200);
   expect(await page.evaluate(() => window.__titreImpression)).toBeUndefined();
   // « Ne plus afficher » puis « Continuer ».
-  await page.click('#bouton-pdf');
+  await choisirExport(page, 'pdf');
   await aide.getByLabel('Ne plus afficher ce message').check();
   await aide.getByRole('button', { name: 'Continuer' }).click();
   await expect.poll(() => page.evaluate(() => window.__titreImpression)).toBe('Mon rapport');
