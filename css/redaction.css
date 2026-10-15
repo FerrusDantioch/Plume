@@ -1,0 +1,319 @@
+/* ==========================================================================
+   Écran de rédaction : barre d'outils, palettes de couleurs, feuille,
+   compteur de mots. Aucune couleur écrite ici (voir themes.css).
+   ========================================================================== */
+
+/* --- Barre d'outils ------------------------------------------------------ */
+.barre-outils {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  padding-left: calc(10px + env(safe-area-inset-left, 0px));
+  padding-right: calc(10px + env(safe-area-inset-right, 0px));
+  background: var(--surface);
+  border-bottom: 1px solid var(--trait);
+}
+
+.groupe {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+}
+
+.groupe + .groupe {
+  padding-left: 4px;
+  border-left: 1px solid var(--trait);
+}
+
+.barre-outils .bouton {
+  min-width: var(--cible);
+  padding: 0 6px;
+}
+
+.bouton-texte-taille {
+  font-family: var(--police-interface);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+#choix-style {
+  width: 9.2rem;
+}
+
+#choix-police {
+  width: 10.6rem;
+}
+
+#choix-taille {
+  width: 4.7rem;
+  font-family: var(--police-chiffres);
+}
+
+/* Témoin de couleur sous l'icône « Couleur du texte » / « Surlignage ». */
+.bouton-couleur {
+  position: relative;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.temoin {
+  width: 20px;
+  height: 5px;
+  border-radius: 2px;
+  border: 1px solid var(--trait);
+  background: var(--texte);
+}
+
+.temoin[data-aucun] {
+  background: transparent;
+}
+
+/* Sur téléphone : une seule ligne qui défile horizontalement. */
+@media (max-width: 700px) {
+  .barre-outils {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+}
+
+/* --- Palettes de couleurs ------------------------------------------------ */
+.palette {
+  position: fixed;
+  z-index: 50;
+  width: max-content;
+  max-width: calc(100vw - 16px);
+  padding: 12px;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-carte);
+  background: var(--surface);
+  box-shadow: var(--ombre);
+  animation: apparition var(--duree) ease-out;
+}
+
+.palette[hidden] {
+  display: none;
+}
+
+.palette-titre {
+  margin-bottom: 8px;
+}
+
+.grille-pastilles {
+  display: grid;
+  grid-template-columns: repeat(4, 76px);
+  gap: 6px;
+}
+
+.pastille {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 4px;
+  min-height: 64px;
+  padding: 7px 2px 5px;
+  border: 1px solid transparent;
+  border-radius: var(--rayon-bouton);
+  background: transparent;
+  color: var(--texte);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.15;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color var(--duree), border-color var(--duree);
+}
+
+.pastille:hover {
+  background: var(--survol);
+}
+
+.pastille[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-doux);
+}
+
+.echantillon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--trait);
+  border-radius: 50%;
+}
+
+/* Pastille « Automatique » : la couleur du texte du thème. */
+.echantillon[data-auto] {
+  background: var(--texte);
+}
+
+/* Pastille « Aucun » : un trait en travers. */
+.echantillon[data-aucun] {
+  background:
+    linear-gradient(135deg, transparent 44%, var(--discret) 44% 56%, transparent 56%),
+    var(--page);
+}
+
+/* La coche : dans un petit rond aux couleurs de l'interface, pour rester
+   lisible quelle que soit la couleur de la pastille. */
+.coche {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  display: none;
+  width: 18px;
+  height: 18px;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-texte);
+  stroke-width: 3;
+}
+
+.pastille[aria-pressed="true"] .coche {
+  display: block;
+}
+
+@media (max-width: 420px) {
+  .grille-pastilles {
+    grid-template-columns: repeat(4, minmax(64px, 1fr));
+  }
+}
+
+/* --- Zone d'écriture et feuille ------------------------------------------ */
+.zone-ecriture {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 28px 16px 56px;
+  scroll-padding: 24px;
+}
+
+.feuille {
+  position: relative;
+  width: 100%;
+  max-width: 794px;          /* largeur d'une page A4 à l'écran */
+  min-height: 1123px;        /* hauteur d'une page A4 à l'écran */
+  margin: 0 auto;
+  padding: 76px;             /* environ 2 cm */
+  border: 1px solid var(--trait);
+  border-radius: 4px;
+  background: var(--page);
+  color: var(--texte);
+  caret-color: var(--accent);
+  font-family: var(--police-document);
+  font-size: 12pt;
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  font-kerning: normal;
+  outline: none;
+}
+
+[data-modalite="clavier"] .feuille:focus {
+  outline: 2px solid var(--halo);
+  outline-offset: 3px;
+}
+
+.feuille ::selection {
+  background: color-mix(in srgb, var(--accent) 38%, transparent);
+}
+
+/* Indication affichée dans un document vide. */
+.feuille[data-vide]::before {
+  content: attr(aria-placeholder);
+  position: absolute;
+  color: var(--discret);
+  font-style: italic;
+  pointer-events: none;
+}
+
+.feuille p {
+  margin: 0 0 0.55em;
+}
+
+.feuille h1,
+.feuille h2,
+.feuille h3 {
+  font-family: inherit;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0.9em 0 0.4em;
+}
+
+.feuille h1 {
+  font-size: 24pt;
+}
+
+.feuille h2 {
+  font-size: 18pt;
+}
+
+.feuille h3 {
+  font-size: 14pt;
+}
+
+.feuille > :first-child {
+  margin-top: 0;
+}
+
+.feuille ul,
+.feuille ol {
+  margin: 0 0 0.55em;
+  padding-left: 1.6em;
+}
+
+.feuille li {
+  margin: 0 0 0.2em;
+}
+
+.feuille b,
+.feuille strong {
+  font-weight: 600;
+}
+
+/* Texte posé sur un surlignage : toujours sombre pour rester lisible,
+   sauf si l'utilisateur a choisi une couleur pour ce texte. */
+.feuille span[style*="background-color"]:not([style^="color:"]):not([style*=" color:"]) {
+  color: var(--texte-surligne);
+}
+
+/* Sur téléphone, la feuille occupe toute la largeur. */
+@media (max-width: 700px) {
+  .zone-ecriture {
+    padding: 0;
+  }
+
+  .feuille {
+    max-width: none;
+    min-height: 100%;
+    padding: 20px 16px 48px;
+    border: 0;
+    border-radius: 0;
+  }
+}
+
+/* --- Barre d'état (compteur) --------------------------------------------- */
+.barre-etat {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  min-height: 30px;
+  padding: 4px 14px;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--trait);
+  background: var(--surface);
+  color: var(--discret);
+  font-size: 0.8rem;
+}

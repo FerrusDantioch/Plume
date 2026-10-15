@@ -1,0 +1,244 @@
+// Barre d'outils de mise en forme : boutons, listes de choix et palettes
+// de couleurs. Elle transmet les commandes à l'éditeur et affiche l'état
+// de la mise en forme sous le curseur.
+
+import { TAILLES, TAILLE_PAR_DEFAUT, POLICES, COULEURS_TEXTE, COULEURS_SURLIGNAGE } from './palettes.js';
+
+const COMMANDES = {
+  annuler: (e) => e.annuler(),
+  retablir: (e) => e.retablir(),
+  gras: (e) => e.gras(),
+  italique: (e) => e.italique(),
+  souligne: (e) => e.souligne(),
+  barre: (e) => e.barre(),
+  'taille-moins': (e) => e.tailleVoisine(-1),
+  'taille-plus': (e) => e.tailleVoisine(1),
+  'aligner-gauche': (e) => e.alignement('left'),
+  'aligner-centre': (e) => e.alignement('center'),
+  'aligner-droite': (e) => e.alignement('right'),
+  justifier: (e) => e.alignement('justify'),
+  'liste-puces': (e) => e.liste('UL'),
+  'liste-numeros': (e) => e.liste('OL'),
+  effacer: (e) => e.effacerMiseEnForme(),
+};
+
+export class BarreOutils {
+  constructor({ barre, editeur }) {
+    this.barre = barre;
+    this.editeur = editeur;
+    this.paletteOuverte = null;
+    this.boutons = Object.fromEntries([...barre.querySelectorAll('[data-commande]')].map((b) => [b.dataset.commande, b]));
+    this.choixStyle = barre.querySelector('#choix-style');
+    this.choixPolice = barre.querySelector('#choix-police');
+    this.choixTaille = barre.querySelector('#choix-taille');
+
+    // Un clic sur un bouton ne doit pas retirer le focus (ni la sélection)
+    // de la feuille : on empêche le bouton de prendre le focus à la souris.
+    barre.addEventListener('mousedown', (e) => {
+      if (e.target.closest('button')) e.preventDefault();
+    });
+    barre.addEventListener('click', (e) => {
+      const bouton = e.target.closest('button[data-commande]');
+      if (bouton && !bouton.disabled) COMMANDES[bouton.dataset.commande]?.(editeur);
+    });
+
+    this.remplirListes();
+    this.choixStyle.addEventListener('change', () => editeur.styleParagraphe(this.choixStyle.value));
+    this.choixPolice.addEventListener('change', () => editeur.police(this.choixPolice.value));
+    this.choixTaille.addEventListener('change', () => {
+      const valeur = Number(this.choixTaille.value);
+      if (valeur) editeur.taille(valeur);
+    });
+
+    this.paletteCouleur = this.creerPalette({
+      bouton: barre.querySelector('#bouton-couleur'),
+      titre: 'Couleur du texte',
+      couleurs: COULEURS_TEXTE,
+      choisir: (valeur) => editeur.couleur(valeur),
+    });
+    this.paletteSurlignage = this.creerPalette({
+      bouton: barre.querySelector('#bouton-surlignage'),
+      titre: 'Surlignage',
+      couleurs: COULEURS_SURLIGNAGE,
+      choisir: (valeur) => editeur.surlignage(valeur),
+    });
+
+    document.addEventListener('pointerdown', (e) => {
+      const p = this.paletteOuverte;
+      if (p && !p.element.contains(e.target) && !p.bouton.contains(e.target)) this.fermerPalette();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.paletteOuverte) {
+        e.preventDefault();
+        this.fermerPalette({ rendreFocus: true });
+      }
+    });
+    window.addEventListener('resize', () => this.fermerPalette());
+    barre.addEventListener('scroll', () => this.fermerPalette(), { passive: true });
+  }
+
+  remplirListes() {
+    for (const taille of TAILLES) this.choixTaille.add(new Option(String(taille), String(taille)));
+    // Option cachée pour une taille absente de la liste, ou des tailles mélangées.
+    this.optionTailleAutre = new Option('', 'autre');
+    this.optionTailleAutre.hidden = true;
+    this.choixTaille.add(this.optionTailleAutre);
+    this.choixTaille.value = String(TAILLE_PAR_DEFAUT);
+    for (const police of POLICES) this.choixPolice.add(new Option(police.nom, police.id));
+  }
+
+  // --- Palettes -----------------------------------------------------------------
+
+  creerPalette({ bouton, titre, couleurs, choisir }) {
+    const element = document.createElement('div');
+    element.className = 'palette';
+    element.id = `palette-${bouton.id}`;
+    element.hidden = true;
+    element.setAttribute('role', 'dialog');
+    element.setAttribute('aria-label', titre);
+    const entete = document.createElement('p');
+    entete.className = 'etiquette palette-titre';
+    entete.textContent = titre;
+    const grille = document.createElement('div');
+    grille.className = 'grille-pastilles';
+    grille.setAttribute('role', 'group');
+    grille.setAttribute('aria-label', titre);
+
+    const pastilles = couleurs.map((couleur) => {
+      const pastille = document.createElement('button');
+      pastille.type = 'button';
+      pastille.className = 'pastille';
+      pastille.setAttribute('aria-label', couleur.nom);
+      pastille.setAttribute('aria-pressed', 'false');
+      pastille.title = couleur.nom;
+      pastille.dataset.valeur = couleur.valeur ?? '';
+      const echantillon = document.createElement('span');
+      echantillon.className = 'echantillon';
+      if (couleur.valeur) echantillon.style.background = couleur.valeur;
+      else if (couleurs === COULEURS_TEXTE) echantillon.dataset.auto = '';
+      else echantillon.dataset.aucun = '';
+      echantillon.innerHTML = '<svg class="icone coche" aria-hidden="true"><use href="#i-coche"></use></svg>';
+      const nom = document.createElement('span');
+      nom.textContent = couleur.nom;
+      nom.setAttribute('aria-hidden', 'true');
+      pastille.append(echantillon, nom);
+      pastille.addEventListener('click', () => {
+        choisir(couleur.valeur);
+        this.fermerPalette();
+      });
+      return pastille;
+    });
+    grille.append(...pastilles);
+    element.append(entete, grille);
+    document.body.appendChild(element);
+
+    // À la souris ou au doigt, la feuille garde le focus (clavier du téléphone compris).
+    element.addEventListener('mousedown', (e) => e.preventDefault());
+    element.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        // Tabulation : on referme la palette et on revient au bouton.
+        e.preventDefault();
+        this.fermerPalette({ rendreFocus: true });
+        return;
+      }
+      naviguerDansGrille(e, pastilles, 4);
+    });
+
+    bouton.setAttribute('aria-controls', element.id);
+    bouton.setAttribute('aria-expanded', 'false');
+    const palette = { element, bouton, pastilles };
+    bouton.addEventListener('click', (e) => {
+      if (this.paletteOuverte === palette) this.fermerPalette();
+      else this.ouvrirPalette(palette, e.detail === 0); // detail 0 : activé au clavier
+    });
+    return palette;
+  }
+
+  ouvrirPalette(palette, auClavier) {
+    this.fermerPalette();
+    this.paletteOuverte = palette;
+    palette.element.hidden = false;
+    palette.bouton.setAttribute('aria-expanded', 'true');
+    positionnerSous(palette.element, palette.bouton);
+    if (auClavier) {
+      const choisie = palette.pastilles.find((p) => p.getAttribute('aria-pressed') === 'true') ?? palette.pastilles[0];
+      choisie.focus();
+    }
+  }
+
+  fermerPalette({ rendreFocus = false } = {}) {
+    const palette = this.paletteOuverte;
+    if (!palette) return;
+    this.paletteOuverte = null;
+    palette.element.hidden = true;
+    palette.bouton.setAttribute('aria-expanded', 'false');
+    if (rendreFocus) palette.bouton.focus();
+  }
+
+  // --- Affichage de l'état ------------------------------------------------------
+
+  mettreAJour(etat) {
+    const b = this.boutons;
+    b.annuler.disabled = !etat.peutAnnuler;
+    b.retablir.disabled = !etat.peutRetablir;
+    const presse = (nom, oui) => b[nom].setAttribute('aria-pressed', oui ? 'true' : 'false');
+    presse('gras', etat.gras);
+    presse('italique', etat.italique);
+    presse('souligne', etat.souligne);
+    presse('barre', etat.barre);
+    presse('aligner-gauche', !etat.actif || etat.alignement === 'left');
+    presse('aligner-centre', etat.alignement === 'center');
+    presse('aligner-droite', etat.alignement === 'right');
+    presse('justifier', etat.alignement === 'justify');
+    presse('liste-puces', etat.liste === 'UL');
+    presse('liste-numeros', etat.liste === 'OL');
+
+    if (document.activeElement !== this.choixStyle) this.choixStyle.value = etat.style ?? 'p';
+    if (document.activeElement !== this.choixPolice) this.choixPolice.value = etat.police ?? 'literata';
+    if (document.activeElement !== this.choixTaille) {
+      const taille = etat.actif ? etat.taille : TAILLE_PAR_DEFAUT;
+      if (TAILLES.includes(taille)) {
+        this.choixTaille.value = String(taille);
+      } else {
+        this.optionTailleAutre.textContent = taille == null ? '–' : String(taille);
+        this.optionTailleAutre.label = taille == null ? 'Tailles mélangées' : `${taille}`;
+        this.choixTaille.value = 'autre';
+      }
+    }
+
+    this.afficherCouleur(this.paletteCouleur, etat.couleur ?? null);
+    this.afficherCouleur(this.paletteSurlignage, etat.surlignage ?? null);
+  }
+
+  afficherCouleur(palette, valeur) {
+    for (const p of palette.pastilles) p.setAttribute('aria-pressed', (p.dataset.valeur || null) === valeur ? 'true' : 'false');
+    const temoin = palette.bouton.querySelector('.temoin');
+    temoin.style.background = valeur ?? '';
+    temoin.toggleAttribute('data-aucun', !valeur && palette === this.paletteSurlignage);
+  }
+}
+
+/** Place un panneau sous un bouton, sans dépasser de l'écran. */
+function positionnerSous(panneau, bouton) {
+  const r = bouton.getBoundingClientRect();
+  const largeurVue = document.documentElement.clientWidth;
+  const hauteurVue = window.visualViewport?.height ?? window.innerHeight;
+  const largeur = panneau.offsetWidth;
+  const hauteur = panneau.offsetHeight;
+  const gauche = Math.max(8, Math.min(r.left, largeurVue - largeur - 8));
+  let haut = r.bottom + 6;
+  if (haut + hauteur > hauteurVue - 8) haut = Math.max(8, r.top - hauteur - 6);
+  panneau.style.left = `${gauche}px`;
+  panneau.style.top = `${haut}px`;
+}
+
+/** Flèches du clavier pour se déplacer dans une grille de boutons. */
+function naviguerDansGrille(e, boutons, colonnes) {
+  const i = boutons.indexOf(document.activeElement);
+  if (i < 0) return;
+  const cibles = { ArrowRight: i + 1, ArrowLeft: i - 1, ArrowDown: i + colonnes, ArrowUp: i - colonnes, Home: 0, End: boutons.length - 1 };
+  if (!(e.key in cibles)) return;
+  e.preventDefault();
+  const j = Math.max(0, Math.min(boutons.length - 1, cibles[e.key]));
+  boutons[j].focus();
+}
