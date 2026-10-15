@@ -1,0 +1,12 @@
+{
+  "name": "plume-tests",
+  "private": true,
+  "description": "Tests automatiques de l'application (navigateur réel, avec Playwright).",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}
