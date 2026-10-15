@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="fr" data-theme="omni">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <!-- Politique de sécurité : seuls les fichiers de l'application peuvent être chargés. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-NuhAF5KC2qWSpGsJ6pHL3tLcA7bG8UDSzDGj5+fwLC0='; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <!-- Le titre affiché est remplacé par le nom défini dans js/config.js. -->
+  <title>Traitement de texte</title>
+  <meta name="description" content="Traitement de texte hors ligne. Tes documents restent sur ton appareil : aucun compte, aucune donnée envoyée.">
+  <meta name="theme-color" content="#1d1929">
+  <meta name="color-scheme" content="dark">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icone-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="preload" href="fonts/oxanium-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/literata-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/polices.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/redaction.css">
+  <link rel="stylesheet" href="css/print.css" media="print">
+  <script src="js/config.js"></script>
+  <script>
+    // Applique le thème mémorisé AVANT le premier affichage (pas de flash).
+    (function () {
+      try {
+        var config = self.CONFIG_APP, racine = document.documentElement, theme = 'omni';
+        var lu = JSON.parse(localStorage.getItem(config.idStockage + '.theme'));
+        if (lu === 'sombre' || lu === 'clair') theme = lu;
+        racine.setAttribute('data-theme', theme);
+        var styles = getComputedStyle(racine);
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', styles.getPropertyValue('--surface').trim());
+        document.querySelector('meta[name="color-scheme"]').setAttribute('content', styles.getPropertyValue('color-scheme').trim());
+        document.title = config.nom;
+      } catch (e) {}
+    })();
+  </script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <!-- Icônes (un seul style : traits arrondis de 24 × 24). -->
+  <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-documents" viewBox="0 0 24 24"><path d="M9 3h6l5 5v9a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14.5 3v5.5H20"/><path d="M4 8v11a2 2 0 0 0 2 2h8"/></symbol>
+    <symbol id="i-pdf" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 11v6"/><path d="m9 14 3 3 3-3"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-annuler" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+    <symbol id="i-retablir" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></symbol>
+    <symbol id="i-gras" viewBox="0 0 24 24"><path stroke-width="2.6" d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z"/></symbol>
+    <symbol id="i-italique" viewBox="0 0 24 24"><path d="M10 5h8M6 19h8M14.5 5l-5 14"/></symbol>
+    <symbol id="i-souligne" viewBox="0 0 24 24"><path d="M7 4v7a5 5 0 0 0 10 0V4M5 20h14"/></symbol>
+    <symbol id="i-barre" viewBox="0 0 24 24"><path d="M4 12h16"/><path d="M16.5 7.5C16 5.6 14.3 4.5 12 4.5c-2.6 0-4.5 1.4-4.5 3.5 0 1.4.8 2.4 2.3 3M8 16c.5 2 2.1 3.5 4.3 3.5 2.6 0 4.5-1.5 4.5-3.6 0-.7-.2-1.3-.5-1.9"/></symbol>
+    <symbol id="i-couleur" viewBox="0 0 24 24"><path d="m6 17 6-13 6 13M8.3 12h7.4"/></symbol>
+    <symbol id="i-surligneur" viewBox="0 0 24 24"><path d="m9 11-5 5v3h3l5-5"/><path d="m9 11 6.5-6.5a2.1 2.1 0 0 1 3 3L12 14z"/></symbol>
+    <symbol id="i-aligner-gauche" viewBox="0 0 24 24"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></symbol>
+    <symbol id="i-aligner-centre" viewBox="0 0 24 24"><path d="M4 6h16M7 10h10M4 14h16M7 18h10"/></symbol>
+    <symbol id="i-aligner-droite" viewBox="0 0 24 24"><path d="M4 6h16M10 10h10M4 14h16M10 18h10"/></symbol>
+    <symbol id="i-justifier" viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></symbol>
+    <symbol id="i-liste-puces" viewBox="0 0 24 24"><path d="M10 6h10M10 12h10M10 18h10"/><circle cx="5" cy="6" r="1.3" fill="currentColor"/><circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="5" cy="18" r="1.3" fill="currentColor"/></symbol>
+    <symbol id="i-liste-numeros" viewBox="0 0 24 24"><path d="M11 7h9M11 17h9"/><path d="M4.5 5.2 6 4.5v5"/><path d="M4 15a1.5 1.5 0 0 1 3 .3c0 1.2-3 1.8-3 3.7h3"/></symbol>
+    <symbol id="i-effacer" viewBox="0 0 24 24"><path d="M5 5h11M11 5 8 18"/><path d="m14 14 6 6M20 14l-6 6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-dupliquer" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+    <symbol id="i-supprimer" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6"/><path d="m6 7 1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></symbol>
+    <symbol id="i-fermer" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-coche" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-sauvegarder" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14"/></symbol>
+    <symbol id="i-restaurer" viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 20h14"/></symbol>
+    <symbol id="i-installer" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11l3 3 3-3"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.6h.01"/></symbol>
+  </svg>
+
+  <a id="lien-evitement" class="lien-evitement" href="#feuille">Aller au document</a>
+
+  <div class="application">
+    <!-- Barre d'application -->
+    <header class="barre-app">
+      <button id="bouton-documents" class="bouton" type="button" aria-haspopup="dialog" aria-controls="tiroir-documents" title="Mes documents">
+        <svg class="icone" aria-hidden="true"><use href="#i-documents"></use></svg>
+        <span class="libelle-large">Documents</span>
+      </button>
+      <div class="zone-titre">
+        <input id="titre-document" class="champ-titre" type="text" aria-label="Titre du document" placeholder="Sans titre" maxlength="200" autocomplete="off" spellcheck="true" lang="fr">
+        <p id="etat-enregistrement" class="etat-enregistrement" role="status" aria-live="polite"></p>
+      </div>
+      <button id="bouton-pdf" class="bouton bouton-principal" type="button" title="Exporter en PDF (Ctrl+P)">
+        <svg class="icone" aria-hidden="true"><use href="#i-pdf"></use></svg>
+        <span class="libelle-large">Exporter en PDF</span>
+      </button>
+      <button id="bouton-menu" class="bouton bouton-icone" type="button" aria-haspopup="dialog" aria-controls="fenetre-menu" aria-label="Menu" title="Menu">
+        <svg class="icone" aria-hidden="true"><use href="#i-menu"></use></svg>
+      </button>
+    </header>
+
+    <!-- Barre d'outils de mise en forme -->
+    <div id="barre-outils" class="barre-outils" role="region" aria-label="Mise en forme">
+      <div class="groupe" role="group" aria-label="Historique">
+        <button class="bouton bouton-discret" type="button" data-commande="annuler" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled>
+          <svg class="icone" aria-hidden="true"><use href="#i-annuler"></use></svg>
+        </button>
+        <button class="bouton bouton-discret" type="button" data-commande="retablir" aria-label="Rétablir" title="Rétablir (Ctrl+Y)" disabled>
+          <svg class="icone" aria-hidden="true"><use href="#i-retablir"></use></svg>
+        </button>
+      </div>
+      <div class="groupe" role="group" aria-label="Style de paragraphe">
+        <span class="liste">
+          <select id="choix-style" aria-label="Style de paragraphe" title="Style de paragraphe">
+            <option value="p">Texte normal</option>
+            <option value="h1">Titre 1</option>
+            <option value="h2">Titre 2</option>
+            <option value="h3">Titre 3</option>
+          </select>
+        </span>
+      </div>
+      <div class="groupe" role="group" aria-label="Police">
+        <span class="liste">
+          <select id="choix-police" aria-label="Police" title="Police"></select>
+        </span>
+      </div>
+      <div class="groupe" role="group" aria-label="Taille du texte">
+        <button class="bouton bouton-discret bouton-texte-taille" type="button" data-commande="taille-moins" aria-label="Réduire la taille du texte" title="Réduire la taille du texte">A−</button>
+        <span class="liste">
+          <select id="choix-taille" aria-label="Taille du texte, en points" title="Taille du texte (en points)"></select>
+        </span>
+        <button class="bouton bouton-discret bouton-texte-taille" type="button" data-commande="taille-plus" aria-label="Augmenter la taille du texte" title="Augmenter la taille du texte">A+</button>
+      </div>
+      <div class="groupe" role="group" aria-label="Style des caractères">
+        <button class="bouton bouton-discret" type="button" data-commande="gras" aria-pressed="false" aria-label="Gras" title="Gras (Ctrl+B)">
+          <svg class="icone" aria-hidden="true"><use href="#i-gras"></use></svg>
+        </button>
+        <button class="bouton bouton-discret" type="button" data-commande="italique" aria-pressed="false" aria-label="Italique" title="Italique (Ctrl+I)">
+          <svg class="icone" aria-hidden="true"><use href="#i-italique"></use></svg>
+        </button>
+        <button class="bouton bouton-discret" type="button" data-commande="souligne" aria-pressed="false" aria-label="Souligné" title="Souligné (Ctrl+U)">
+          <svg class="icone" aria-hidden="true"><use href="#i-souligne"></use></svg>
+        </button>
+        <button class="bouton bouton-discret" type="button" data-commande="barre" aria-pressed="false" aria-label="Barré" title="Barré">
+          <svg class="icone" aria-hidden="true"><use href="#i-barre"></use></svg>
+        </button>
+      </div>
+      <div class="groupe" role="group" aria-label="Couleurs">
+        <button id="bouton-couleur" class="bouton bouton-discret bouton-couleur" type="button" aria-haspopup="dialog" aria-label="Couleur du texte" title="Couleur du texte">
+          <svg class="icone" aria-hidden="true"><use href="#i-couleur"></use></svg>
+          <span class="temoin" aria-hidden="true"></span>
+        </button>
+        <button id="bouton-surlignage" class="bouton bouton-discret bouton-couleur" type="button" aria-haspopup="dialog" aria-label="Surlignage" title="Surlignage">
+          <svg class="icone" aria-hidden="true"><use href="#i-surligneur"></use></svg>
+          <span class="temoin" aria-hidden="true" data-aucun></span>
+        </button>
+      </div>
+      <div class="groupe" role="group" aria-label="Alignement">
+        <button class="bouton bouton-discret" type="button" data-commande="aligner-gauche" aria-pressed="true" aria-label="Aligner à gauche" title="Aligner à gauche">
+          <svg class="icone" aria-hidden="true"><use href="#i-aligner-gauche"></use></svg>
+        </button>
+        <button class="bouton bouton-discret" type="button" data-commande="aligner-centre" aria-pressed="false" aria-label="Centrer" title="Centrer">
+          <svg class="icone" aria-hidden="true"><use href="#i-aligner-centre"></use></svg>
+        </button>
+        <button class="bouton bouton-discret" type="button" data-commande="aligner-droite" aria-pressed="false" aria-label="Aligner à droite" title="Aligner à droite">
+          <svg class="icone" aria-hidden="true"><use href="#i-aligner-droite"></use></svg>
+        </button>
+        <button class="bouton bouton-discret" type="button" data-commande="justifier" aria-pressed="false" aria-label="Justifier" title="Justifier">
+          <svg class="icone" aria-hidden="true"><use href="#i-justifier"></use></svg>
+        </button>
+      </div>
+      <div class="groupe" role="group" aria-label="Listes">
+        <button class="bouton bouton-discret" type="button" data-commande="liste-puces" aria-pressed="false" aria-label="Liste à puces" title="Liste à puces">
+          <svg class="icone" aria-hidden="true"><use href="#i-liste-puces"></use></svg>
+        </button>
+        <button class="bouton bouton-discret" type="button" data-commande="liste-numeros" aria-pressed="false" aria-label="Liste numérotée" title="Liste numérotée">
+          <svg class="icone" aria-hidden="true"><use href="#i-liste-numeros"></use></svg>
+        </button>
+      </div>
+      <div class="groupe" role="group" aria-label="Nettoyage">
+        <button class="bouton bouton-discret" type="button" data-commande="effacer" aria-label="Effacer la mise en forme" title="Effacer la mise en forme de la sélection">
+          <svg class="icone" aria-hidden="true"><use href="#i-effacer"></use></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- La feuille de rédaction -->
+    <main id="zone-ecriture" class="zone-ecriture">
+      <div id="feuille" class="feuille" contenteditable="false" role="textbox" aria-multiline="true"
+           aria-label="Contenu du document" aria-placeholder="Commence à écrire ici…"
+           spellcheck="true" lang="fr" autocapitalize="sentences" translate="no"></div>
+    </main>
+
+    <!-- Compteur -->
+    <footer class="barre-etat">
+      <p id="compteur" class="compteur chiffres">0 mot · 0 caractère</p>
+    </footer>
+  </div>
+
+  <div id="zone-messages" class="zone-messages" role="status" aria-live="polite"></div>
+  <input id="fichier-restauration" type="file" accept=".json,application/json" hidden>
+
+  <!-- Panneau « Mes documents » -->
+  <dialog id="tiroir-documents" class="tiroir" aria-labelledby="titre-tiroir" data-fermeture-exterieure>
+    <div class="fenetre-entete">
+      <h2 id="titre-tiroir">Mes documents</h2>
+      <button class="bouton bouton-icone bouton-discret" type="button" data-fermer aria-label="Fermer le panneau" title="Fermer">
+        <svg class="icone" aria-hidden="true"><use href="#i-fermer"></use></svg>
+      </button>
+    </div>
+    <div class="tiroir-actions">
+      <button id="bouton-nouveau-document" class="bouton bouton-principal" type="button">
+        <svg class="icone" aria-hidden="true"><use href="#i-plus"></use></svg>
+        Nouveau document
+      </button>
+    </div>
+    <ul id="liste-documents" class="liste-documents" aria-label="Liste des documents, du plus récent au plus ancien"></ul>
+  </dialog>
+
+  <!-- Menu -->
+  <dialog id="fenetre-menu" class="menu" aria-label="Menu" data-fermeture-exterieure>
+    <fieldset class="menu-section" id="choix-themes">
+      <legend class="etiquette">Thème</legend>
+    </fieldset>
+    <div class="menu-section">
+      <p class="etiquette">Mes documents</p>
+      <button id="bouton-sauvegarder" class="bouton bouton-discret" type="button">
+        <svg class="icone" aria-hidden="true"><use href="#i-sauvegarder"></use></svg>
+        Sauvegarder tous mes documents
+      </button>
+      <button id="bouton-restaurer" class="bouton bouton-discret" type="button">
+        <svg class="icone" aria-hidden="true"><use href="#i-restaurer"></use></svg>
+        Restaurer une sauvegarde
+      </button>
+    </div>
+    <div class="menu-section">
+      <p class="etiquette">Application</p>
+      <button id="bouton-installer" class="bouton bouton-discret" type="button" aria-haspopup="dialog">
+        <svg class="icone" aria-hidden="true"><use href="#i-installer"></use></svg>
+        Installer l'application
+      </button>
+      <button id="bouton-a-propos" class="bouton bouton-discret" type="button" aria-haspopup="dialog">
+        <svg class="icone" aria-hidden="true"><use href="#i-info"></use></svg>
+        À propos
+      </button>
+      <button class="bouton" type="button" data-fermer>Fermer le menu</button>
+    </div>
+  </dialog>
+
+  <!-- Question (confirmation) ou information -->
+  <dialog id="fenetre-question" aria-labelledby="titre-question" aria-describedby="message-question">
+    <div class="fenetre-entete"><h2 id="titre-question"></h2></div>
+    <div class="fenetre-corps"><p id="message-question" class="question-message"></p></div>
+    <div class="fenetre-actions">
+      <button class="bouton" type="button" data-fermer="non">Annuler</button>
+      <button class="bouton bouton-principal" type="button" data-fermer="oui">Confirmer</button>
+    </div>
+  </dialog>
+
+  <!-- Aide avant l'export PDF -->
+  <dialog id="fenetre-aide-pdf" aria-labelledby="titre-aide-pdf">
+    <div class="fenetre-entete"><h2 id="titre-aide-pdf">Exporter en PDF</h2></div>
+    <div class="fenetre-corps">
+      <p>Dans la fenêtre qui s'ouvre, choisis « Enregistrer au format PDF » comme destination.</p>
+      <p>Sur Android, c'est aussi « Enregistrer au format PDF » dans l'aperçu d'impression de Chrome.</p>
+      <p class="texte-discret">Le fichier PDF porte le titre de ton document. Si la date et l'adresse de la page apparaissent en haut et en bas des pages, décoche « En-têtes et pieds de page ».</p>
+      <label class="case-a-cocher"><input type="checkbox"> Ne plus afficher ce message</label>
+    </div>
+    <div class="fenetre-actions">
+      <button class="bouton" type="button" data-fermer="annuler">Annuler</button>
+      <button class="bouton bouton-principal" type="button" data-fermer="continuer">Continuer</button>
+    </div>
+  </dialog>
+
+  <!-- Aide à l'installation -->
+  <dialog id="fenetre-installation" aria-labelledby="titre-installation">
+    <div class="fenetre-entete">
+      <h2 id="titre-installation">Installer l'application</h2>
+      <button class="bouton bouton-icone bouton-discret" type="button" data-fermer aria-label="Fermer" title="Fermer">
+        <svg class="icone" aria-hidden="true"><use href="#i-fermer"></use></svg>
+      </button>
+    </div>
+    <div class="fenetre-corps">
+      <p id="installation-deja-faite" hidden><strong>L'application est déjà installée sur cet appareil.</strong></p>
+      <p>Une fois installée, l'application s'ouvre dans sa propre fenêtre et fonctionne sans connexion internet.</p>
+      <button id="bouton-installer-maintenant" class="bouton bouton-principal" type="button" hidden>Installer maintenant</button>
+      <p class="etiquette">Sur ordinateur (Chrome, Edge)</p>
+      <p>Clique sur l'icône d'installation à droite de la barre d'adresse. Ou ouvre le menu du navigateur (les trois points), puis choisis « Installer » ou « Installer cette page en tant qu'application ».</p>
+      <p class="texte-discret">Firefox sur ordinateur ne propose pas toujours l'installation. L'application fonctionne quand même dans un onglet, hors ligne compris.</p>
+      <p class="etiquette">Sur Android (Chrome, Brave)</p>
+      <p>Ouvre le menu du navigateur (les trois points), puis choisis « Ajouter à l'écran d'accueil » ou « Installer l'application ».</p>
+      <p class="texte-discret">Si Chrome indique « Cette appli est déjà installée » alors qu'elle ne l'est pas, c'est une limite de Chrome : une autre de mes applications du même site est déjà installée. Utilise alors un autre navigateur (Brave, par exemple), ou choisis « Créer un raccourci ».</p>
+    </div>
+    <div class="fenetre-actions">
+      <button class="bouton" type="button" data-fermer>Fermer</button>
+    </div>
+  </dialog>
+
+  <!-- À propos -->
+  <dialog id="fenetre-a-propos" aria-labelledby="titre-a-propos">
+    <div class="fenetre-corps a-propos">
+      <img src="assets/logo-omni-systeme.webp" width="104" height="104" alt="Logo de l'Omni-système : un dé à vingt faces violet entouré d'un anneau lumineux">
+      <h2 id="titre-a-propos" class="nom-application"></h2>
+      <p class="version chiffres"></p>
+      <p>Application réalisée par Ferrus Dantioch, avec l'aide de Claude (Anthropic).</p>
+      <p>Tes documents restent sur cet appareil. Aucun compte, aucune donnée envoyée.</p>
+      <p>Contact : <a class="contact" href="mailto:"></a></p>
+      <p><a class="lien-omni" href="#" target="_blank" rel="noopener">Découvrir l'Omni-système</a></p>
+    </div>
+    <div class="fenetre-actions">
+      <button class="bouton bouton-principal" type="button" data-fermer>Fermer</button>
+    </div>
+  </dialog>
+</body>
+</html>

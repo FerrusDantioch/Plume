@@ -1,0 +1,19 @@
+{
+  "name": "Plume",
+  "short_name": "Plume",
+  "description": "Traitement de texte hors ligne. Tes documents restent sur ton appareil : aucun compte, aucune donnée envoyée.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#14111d",
+  "theme_color": "#1d1929",
+  "categories": ["productivity"],
+  "icons": [
+    { "src": "icons/icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icone-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icone-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
