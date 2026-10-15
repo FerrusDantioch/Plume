@@ -1,0 +1,93 @@
+/* ==========================================================================
+   Thèmes de couleurs
+   C'est le SEUL fichier qui contient des couleurs. Tout le reste du code
+   utilise ces variables. Le thème actif est choisi par l'attribut
+   data-theme="omni" | "sombre" | "clair" posé sur <html>.
+
+   Un élément peut aussi porter son propre data-theme : c'est ainsi que les
+   pastilles d'aperçu du menu montrent les couleurs de chaque thème.
+
+   Contrastes vérifiés (norme WCAG AA, 4,5:1 minimum pour le texte) :
+   le test tests/contraste.spec.js recalcule ces rapports automatiquement.
+   ========================================================================== */
+
+/* --- Omni-système (thème par défaut) ------------------------------------ */
+:root,
+[data-theme="omni"] {
+  --fond: #14111d;          /* arrière-plan de l'application */
+  --surface: #1d1929;       /* barres, fenêtres, menus */
+  --page: #1d1929;          /* la feuille de rédaction */
+  --trait: #332c47;         /* bordures fines */
+  --texte: #e9e4f2;         /* texte principal (13,8:1 sur la surface) */
+  --discret: #a59cbb;       /* texte secondaire (6,6:1) */
+  --accent: #a777ff;        /* violet du logo */
+  --accent-texte: #140d24;  /* texte posé sur l'accent (6,0:1) */
+  --halo: #d6c2ff;          /* contour de focus, liens */
+
+  /* Variables complémentaires (mêmes rôles dans les trois thèmes). */
+  --accent-doux: #3b2e58;   /* fond d'un bouton activé */
+  --survol: #2a2340;        /* fond d'un bouton survolé */
+  --voile: rgb(8 6 14 / 0.68);           /* derrière les fenêtres */
+  --ombre: 0 14px 36px rgb(0 0 0 / 0.45);
+  --danger: #ff8a93;        /* bouton « Supprimer » */
+  --danger-texte: #1f0a0d;
+  --texte-surligne: #14111d; /* texte posé sur un surlignage */
+  color-scheme: dark;
+}
+
+/* --- Sombre classique (neutre, sans violet) ------------------------------ */
+[data-theme="sombre"] {
+  --fond: #1c1c1e;
+  --surface: #2a2a2d;
+  --page: #26262a;
+  --trait: #3d3d42;
+  --texte: #e6e6e6;         /* 11,5:1 sur la surface */
+  --discret: #a0a0a8;       /* 5,5:1 */
+  --accent: #7aa7ff;
+  --accent-texte: #0e1726;  /* 7,5:1 */
+  --halo: #b7cdff;
+
+  --accent-doux: #3c465b;
+  --survol: #36363a;
+  --voile: rgb(10 10 12 / 0.68);
+  --ombre: 0 14px 36px rgb(0 0 0 / 0.5);
+  --danger: #ff8f8f;
+  --danger-texte: #200b0b;
+  --texte-surligne: #14111d;
+  color-scheme: dark;
+}
+
+/* --- Clair --------------------------------------------------------------- */
+[data-theme="clair"] {
+  --fond: #f1eff5;
+  --surface: #ffffff;
+  --page: #ffffff;
+  --trait: #d9d6e0;
+  --texte: #1c1a24;         /* 17,2:1 sur la surface */
+  --discret: #5e5a6d;       /* 6,7:1 */
+  --accent: #5b3fd0;
+  --accent-texte: #ffffff;  /* 6,9:1 */
+  --halo: #5b3fd0;
+
+  --accent-doux: #dbd5f5;
+  --survol: #ebe8f2;
+  --voile: rgb(28 26 36 / 0.42);
+  --ombre: 0 14px 36px rgb(28 26 36 / 0.18);
+  --danger: #c42b3b;
+  --danger-texte: #ffffff;
+  --texte-surligne: #14111d;
+  color-scheme: light;
+}
+
+/* --- Impression et PDF : toujours une feuille blanche, texte noir -------- */
+@media print {
+  :root,
+  [data-theme] {
+    --fond: #ffffff;
+    --surface: #ffffff;
+    --page: #ffffff;
+    --texte: #000000;
+    --texte-surligne: #000000;
+    color-scheme: light;
+  }
+}
