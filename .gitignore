@@ -1,0 +1,5 @@
+# Fichiers à ne pas enregistrer dans git
+tests/node_modules/
+tests/resultats/
+.DS_Store
+Thumbs.db
