@@ -65,6 +65,8 @@
     <symbol id="i-supprimer" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6"/><path d="m6 7 1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></symbol>
     <symbol id="i-fermer" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
     <symbol id="i-coche" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-chevron-gauche" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+    <symbol id="i-chevron-droite" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
     <symbol id="i-sauvegarder" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14"/></symbol>
     <symbol id="i-restaurer" viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 20h14"/></symbol>
     <symbol id="i-installer" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11l3 3 3-3"/></symbol>
@@ -93,7 +95,12 @@
       </button>
     </header>
 
-    <!-- Barre d'outils de mise en forme -->
+    <!-- Barre d'outils de mise en forme. Sur téléphone, elle défile ; les
+         flèches des bords montrent qu'il reste des boutons à voir. -->
+    <div class="cadre-barre-outils">
+    <button class="defilement defilement-gauche" type="button" data-sens="-1" tabindex="-1" aria-label="Afficher les boutons précédents" title="Boutons précédents" hidden>
+      <svg class="icone" aria-hidden="true"><use href="#i-chevron-gauche"></use></svg>
+    </button>
     <div id="barre-outils" class="barre-outils" role="region" aria-label="Mise en forme">
       <div class="groupe" role="group" aria-label="Historique">
         <button class="bouton bouton-discret" type="button" data-commande="annuler" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled>
@@ -176,6 +183,10 @@
           <svg class="icone" aria-hidden="true"><use href="#i-effacer"></use></svg>
         </button>
       </div>
+    </div>
+    <button class="defilement defilement-droite" type="button" data-sens="1" tabindex="-1" aria-label="Afficher les boutons suivants" title="Boutons suivants" hidden>
+      <svg class="icone" aria-hidden="true"><use href="#i-chevron-droite"></use></svg>
+    </button>
     </div>
 
     <!-- La feuille de rédaction -->

@@ -1,6 +1,6 @@
 // Fenêtre « À propos », clavier, lecteurs d'écran, animations.
 
-import { test, expect, ouvrir, remplir } from './aides.js';
+import { test, expect, ouvrir, remplir, VERSION } from './aides.js';
 
 test.beforeEach(async ({ page }) => {
   await ouvrir(page);
@@ -13,7 +13,7 @@ test('fenêtre « À propos » : contenu exact, Échap et bouton « Fermer », r
   await expect(fenetre).toBeVisible();
   await expect(fenetre.locator('img')).toHaveAttribute('src', 'assets/logo-omni-systeme.webp');
   await expect(fenetre.locator('.nom-application')).toHaveText('Plume');
-  await expect(fenetre.locator('.version')).toHaveText('Version 1.0.0');
+  await expect(fenetre.locator('.version')).toHaveText(`Version ${VERSION}`);
   await expect(fenetre).toContainText('Application réalisée par Ferrus Dantioch, avec l\'aide de Claude (Anthropic).');
   await expect(fenetre).toContainText('Tes documents restent sur cet appareil. Aucun compte, aucune donnée envoyée.');
   const contact = fenetre.locator('a.contact');
@@ -92,6 +92,12 @@ test('chaque bouton a un nom en français, l’enregistrement est annoncé', asy
   await expect(page.locator('#feuille')).toHaveAttribute('role', 'textbox');
   await expect(page.locator('#feuille')).toHaveAttribute('lang', 'fr');
   await expect(page.locator('#feuille')).toHaveAttribute('spellcheck', 'true');
+});
+
+test('sur ordinateur, la barre d’outils passe à la ligne : pas de flèches de défilement', async ({ page }) => {
+  await expect(page.locator('.defilement-gauche')).toBeHidden();
+  await expect(page.locator('.defilement-droite')).toBeHidden();
+  await expect(page.locator('[data-commande="effacer"]')).toBeInViewport();
 });
 
 test('focus visible : contour de 2 px couleur halo, décalé de 3 px', async ({ page }) => {

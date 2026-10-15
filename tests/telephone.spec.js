@@ -30,6 +30,48 @@ test('la barre d’outils tient sur une ligne et défile horizontalement', async
   await expect(dernier).toBeInViewport();
 });
 
+test('des flèches montrent qu’il reste des boutons et font défiler la barre', async ({ page }) => {
+  const barre = page.locator('#barre-outils');
+  const gauche = page.locator('.defilement-gauche');
+  const droite = page.locator('.defilement-droite');
+  const position = () => barre.evaluate((b) => b.scrollLeft);
+  // Au départ : des boutons sont cachés à droite seulement.
+  await expect(droite).toBeVisible();
+  await expect(gauche).toBeHidden();
+  const zone = await droite.boundingBox();
+  expect(zone.width).toBeGreaterThanOrEqual(44);
+  expect(zone.height).toBeGreaterThanOrEqual(44);
+  expect(zone.x + zone.width).toBeCloseTo(390, 0);
+
+  // Toucher la flèche fait avancer la barre, sans retirer le focus de la feuille.
+  await page.locator('#feuille').tap();
+  await droite.tap();
+  expect(await position()).toBeGreaterThan(150);
+  await expect(gauche).toBeVisible();
+  expect(await page.evaluate(() => document.activeElement.id)).toBe('feuille');
+
+  // Jusqu'au bout : la flèche de droite disparaît, le dernier bouton est visible.
+  const toucherTantQueVisible = async (fleche) => {
+    for (let i = 0; i < 10 && (await fleche.isVisible()); i++) {
+      await fleche.tap();
+      await page.waitForTimeout(150); // le temps que la barre signale son défilement
+    }
+  };
+  await toucherTantQueVisible(droite);
+  await expect(droite).toBeHidden();
+  await expect(page.locator('[data-commande="effacer"]')).toBeInViewport();
+
+  // Retour au début avec la flèche de gauche.
+  await toucherTantQueVisible(gauche);
+  await expect(gauche).toBeHidden();
+  expect(await position()).toBe(0);
+
+  // Un glissement au doigt met aussi les flèches à jour.
+  await barre.evaluate((b) => b.scrollTo({ left: 200 }));
+  await expect(gauche).toBeVisible();
+  await expect(droite).toBeVisible();
+});
+
 test('tous les boutons font au moins 44 × 44 px', async ({ page }) => {
   const trop_petits = await page.evaluate(() =>
     [...document.querySelectorAll('.barre-app button, .barre-app input, .barre-outils button, .barre-outils select')]

@@ -8,7 +8,7 @@ ordinateur ou un téléphone Android, comme une application classique.
 - Ordinateur (Chrome, Edge, Firefox) et Android (Chrome, Brave), à la souris, au clavier et au doigt.
 - Première application de la « Suite Bureautique » de l'Omni-système.
 
-Adresse prévue : `https://ferrusdantioch.github.io/plume/`
+Adresse : `https://ferrusdantioch.github.io/Plume/` (dépôt GitHub `FerrusDantioch/Plume`).
 
 ---
 
@@ -64,15 +64,15 @@ puis suis les étapes 4 à 7 ci-dessus.
 
 ## 3. Publier l'application sur GitHub Pages
 
-Le nom du dépôt donne l'adresse : un dépôt nommé `plume` sera publié à
-`https://ferrusdantioch.github.io/plume/`. Tous les chemins de l'application
+Le nom du dépôt donne l'adresse : le dépôt `Plume` sera publié à
+`https://ferrusdantioch.github.io/Plume/`. Tous les chemins de l'application
 sont relatifs : elle fonctionne dans ce sous-dossier.
 
 **Méthode simple, par le site de GitHub (sans rien installer)**
 
 1. Connecte-toi sur <https://github.com> avec le compte `FerrusDantioch`.
 2. Clique sur le bouton « + » en haut à droite, puis sur « New repository ».
-3. Dans « Repository name », tape `plume`.
+3. Dans « Repository name », tape `Plume`.
 4. Choisis « Public ». Ne coche aucune autre case. Clique sur « Create repository ».
 5. Sur la page qui s'affiche, clique sur le lien « uploading an existing file ».
 6. Ouvre le dossier `traitement-de-texte` sur ton ordinateur et sélectionne tout son
@@ -81,14 +81,14 @@ sont relatifs : elle fonctionne dans ce sous-dossier.
 7. Attends la fin du chargement, puis clique sur le bouton vert « Commit changes ».
 8. Clique sur l'onglet « Settings » du dépôt, puis sur « Pages » dans la colonne de gauche.
 9. Sous « Branch », choisis `main`, puis `/ (root)`, puis clique sur « Save ».
-10. Attends une à deux minutes, puis ouvre `https://ferrusdantioch.github.io/plume/`.
+10. Attends une à deux minutes, puis ouvre `https://ferrusdantioch.github.io/Plume/`.
 
 **Autre méthode, avec l'application GitHub Desktop** : elle garde l'historique
 des modifications (le dossier contient déjà un dépôt git local).
 
 1. Installe GitHub Desktop depuis <https://desktop.github.com> et connecte-toi.
 2. Menu « File », puis « Add local repository… », puis choisis le dossier `traitement-de-texte`.
-3. Clique sur « Publish repository ». Nom : `plume`. Décoche « Keep this code private ». Clique sur « Publish repository ».
+3. Clique sur « Publish repository ». Nom : `Plume`. Décoche « Keep this code private ». Clique sur « Publish repository ».
 4. Fais ensuite les étapes 8 à 10 de la méthode simple.
 
 **Publier une mise à jour**
@@ -110,7 +110,7 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
   Le manifeste est un fichier de données (JSON) : il ne peut pas lire `config.js`,
   c'est pourquoi le nom y est recopié. Un test automatique vérifie que les deux
   correspondent. Le titre de la page et la fenêtre « À propos » suivent `config.js`.
-- **Version** : dans `js/config.js`, ligne `version: '1.0.0',`.
+- **Version** : dans `js/config.js`, ligne `version: '1.0.1',` (version actuelle).
 - **Ne change jamais** `idStockage: 'plume'` : c'est le nom de la base de données ;
   le changer rendrait les documents existants invisibles.
 - **Icônes** : elles sont créées par `outils/creer-icones.py` (Python et la

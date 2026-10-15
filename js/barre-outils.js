@@ -75,6 +75,35 @@ export class BarreOutils {
     });
     window.addEventListener('resize', () => this.fermerPalette());
     barre.addEventListener('scroll', () => this.fermerPalette(), { passive: true });
+    this.preparerFlechesDeDefilement();
+  }
+
+  /**
+   * Sur téléphone, la barre défile horizontalement. Une flèche apparaît sur
+   * chaque bord derrière lequel des boutons sont cachés ; la toucher fait
+   * avancer la barre d'environ deux tiers de sa largeur.
+   */
+  preparerFlechesDeDefilement() {
+    const barre = this.barre;
+    const cadre = barre.parentElement;
+    const gauche = cadre.querySelector('.defilement-gauche');
+    const droite = cadre.querySelector('.defilement-droite');
+    if (!gauche || !droite) return;
+    const mettreAJour = () => {
+      const reste = barre.scrollWidth - barre.clientWidth - barre.scrollLeft;
+      gauche.hidden = barre.scrollLeft <= 2;
+      droite.hidden = reste <= 2;
+    };
+    for (const fleche of [gauche, droite]) {
+      // Comme les autres boutons : la feuille garde le focus et la sélection.
+      fleche.addEventListener('mousedown', (e) => e.preventDefault());
+      fleche.addEventListener('click', () => {
+        barre.scrollBy({ left: Number(fleche.dataset.sens) * Math.round(barre.clientWidth * 0.66) });
+      });
+    }
+    barre.addEventListener('scroll', mettreAJour, { passive: true });
+    new ResizeObserver(mettreAJour).observe(barre);
+    mettreAJour();
   }
 
   remplirListes() {

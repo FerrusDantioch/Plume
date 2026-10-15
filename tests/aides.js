@@ -2,7 +2,11 @@
 // Chaque test vérifie aussi, à la fin, que la console du navigateur n'a
 // affiché aucune erreur.
 
+import { readFileSync } from 'node:fs';
 import { test as base, expect } from '@playwright/test';
+
+/** Numéro de version actuel, lu dans js/config.js. */
+export const VERSION = readFileSync(new URL('../js/config.js', import.meta.url), 'utf8').match(/version: '([^']+)'/)[1];
 
 export const test = base.extend({
   erreurs: [

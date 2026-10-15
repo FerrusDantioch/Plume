@@ -5,9 +5,10 @@ import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { test, expect, ouvrir, contenu, attendreEnregistrement } from './aides.js';
+import { test, expect, ouvrir, contenu, attendreEnregistrement, VERSION } from './aides.js';
 
 const RACINE = fileURLToPath(new URL('..', import.meta.url));
+const NOUVELLE = `${VERSION}-essai`; // version fictive pour simuler une mise à jour
 
 test('une nouvelle version est annoncée, et « Recharger » l’installe', async ({ page }) => {
   // Copie de l'application dans un dossier temporaire, pour pouvoir
@@ -32,18 +33,18 @@ test('une nouvelle version est annoncée, et « Recharger » l’installe', asyn
     await page.keyboard.type('Texte gardé pendant la mise à jour');
 
     const config = join(dossier, 'js', 'config.js');
-    await writeFile(config, (await readFile(config, 'utf8')).replace("version: '1.0.0'", "version: '1.0.1'"));
+    await writeFile(config, (await readFile(config, 'utf8')).replace(`version: '${VERSION}'`, `version: '${NOUVELLE}'`));
     await page.evaluate(async () => (await navigator.serviceWorker.getRegistration()).update());
     const annonce = page.locator('.message', { hasText: 'Une nouvelle version est disponible.' });
     await expect(annonce).toBeVisible({ timeout: 10_000 });
     await Promise.all([page.waitForEvent('load'), annonce.getByRole('button', { name: 'Recharger' }).click()]);
     await page.locator('#feuille[contenteditable="true"]').waitFor();
     // L'ancien cache est supprimé, le texte tapé juste avant est conservé.
-    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual(['plume-1.0.1']);
+    await expect.poll(() => page.evaluate(() => caches.keys())).toEqual([`plume-${NOUVELLE}`]);
     expect(await contenu(page)).toBe('<p>Texte gardé pendant la mise à jour</p>');
     await page.click('#bouton-menu');
     await page.click('#bouton-a-propos');
-    await expect(page.locator('#fenetre-a-propos .version')).toHaveText('Version 1.0.1');
+    await expect(page.locator('#fenetre-a-propos .version')).toHaveText(`Version ${NOUVELLE}`);
   } finally {
     serveur.kill();
     await rm(dossier, { recursive: true, force: true });
@@ -54,7 +55,7 @@ test('après la première visite, l’application se lance et fonctionne sans r�
   await ouvrir(page);
   await page.evaluate(() => navigator.serviceWorker.ready);
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
-  expect(await page.evaluate(() => caches.keys())).toEqual(['plume-1.0.0']);
+  expect(await page.evaluate(() => caches.keys())).toEqual([`plume-${VERSION}`]);
   await page.locator('#feuille').click();
   await page.keyboard.type('Écrit en ligne.');
   await attendreEnregistrement(page);
