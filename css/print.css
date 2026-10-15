@@ -1,0 +1,78 @@
+/* ==========================================================================
+   Impression et export PDF.
+   Ce fichier n'est utilisé que pour l'impression (attribut media="print").
+   On n'imprime que la feuille : fond blanc et texte noir par défaut (voir
+   la fin de themes.css), les couleurs choisies par l'utilisateur restent.
+   ========================================================================== */
+
+@page {
+  size: A4;
+  margin: 2cm;
+}
+
+html,
+body {
+  height: auto !important;
+  overflow: visible !important;
+  background: var(--page) !important;
+}
+
+/* Tout est masqué sauf le contenu du document. */
+.lien-evitement,
+.barre-app,
+.barre-outils,
+.barre-etat,
+.zone-messages,
+.palette,
+dialog {
+  display: none !important;
+}
+
+.application {
+  position: static !important;
+  display: block !important;
+  height: auto !important;
+}
+
+.zone-ecriture {
+  overflow: visible !important;
+  padding: 0 !important;
+}
+
+.feuille {
+  max-width: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--page) !important;
+  color: var(--texte) !important;
+  outline: none !important;
+}
+
+.feuille[data-vide]::before {
+  content: none;
+}
+
+/* Les surlignages et couleurs s'impriment tels quels. */
+.feuille,
+.feuille * {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Un titre ne reste jamais seul en bas d'une page. */
+.feuille h1,
+.feuille h2,
+.feuille h3 {
+  break-after: avoid;
+  page-break-after: avoid;
+  break-inside: avoid;
+}
+
+.feuille p,
+.feuille li {
+  orphans: 2;
+  widows: 2;
+}
