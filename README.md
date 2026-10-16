@@ -368,5 +368,17 @@ L'analyse du PDF demande aussi Python 3 avec `pdfplumber` et `pypdfium2`
 
 ---
 
+## 11. Idées pour plus tard
+
+- **Correcteur d'orthographe français intégré à Plume**, qui fonctionne sans
+  connexion et ne dépend pas des réglages du navigateur. Aujourd'hui, Plume
+  demande au navigateur de souligner les fautes en français (`spellcheck` et
+  `lang="fr"`) ; cela ne marche que si le navigateur ou le clavier du téléphone
+  a le dictionnaire français activé. À prévoir : un dictionnaire français libre
+  (environ 2 à 4 Mo, téléchargé une fois puis gardé pour le mode hors ligne) et
+  des suggestions de correction au toucher ou au clic droit.
+
+---
+
 Application réalisée par Ferrus Dantioch, avec l'aide de Claude (Anthropic).
 Contact : ferrusdantioch@protonmail.com
