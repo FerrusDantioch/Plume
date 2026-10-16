@@ -14,7 +14,7 @@ function texteDuBloc(bloc) {
     if (n.nodeType === 3) texte += n.data;
     else if (n.nodeName === 'BR') texte += '\n';
   }
-  return texte.replace(/\n$/, '').replace(/​/g, '');
+  return texte.replace(/\n$/, '').replace(/\u200B/g, '');
 }
 
 /**
@@ -33,5 +33,5 @@ export function creerTexte(conteneur) {
       lignes.push(texteDuBloc(bloc));
     }
   }
-  return `﻿${lignes.join('\n').replace(/\n/g, FIN_DE_LIGNE)}${FIN_DE_LIGNE}`;
+  return `\uFEFF${lignes.join('\n').replace(/\n/g, FIN_DE_LIGNE)}${FIN_DE_LIGNE}`;
 }

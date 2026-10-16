@@ -51,7 +51,7 @@ export async function ouvrir(page) {
 
 /** Code HTML de la feuille, sans les caractères invisibles. */
 export function contenu(page) {
-  return page.evaluate(() => document.getElementById('feuille').innerHTML.replaceAll('​', ''));
+  return page.evaluate(() => document.getElementById('feuille').innerHTML.replaceAll('\u200B', ''));
 }
 
 /** Remplace le contenu de la feuille (comme un document ouvert). */

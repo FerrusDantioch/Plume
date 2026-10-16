@@ -2,8 +2,8 @@
 
 import { test, expect, ouvrir } from './aides.js';
 
-const INSECABLE = ' ';
-const FINE = ' ';
+const INSECABLE = '\u00A0';
+const FINE = '\u202F';
 
 async function taper(page, texte) {
   await page.evaluate(() => {

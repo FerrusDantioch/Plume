@@ -312,7 +312,7 @@ test.describe('Caractère invisible', () => {
     await page.selectOption('#choix-taille', '24');
     await choisirCouleur(page, 'couleur', 'Bleu');
     // Un caractère invisible est maintenant dans le document…
-    const invisibles = await page.evaluate(() => document.getElementById('feuille').textContent.split('​').length - 1);
+    const invisibles = await page.evaluate(() => document.getElementById('feuille').textContent.split('\u200B').length - 1);
     expect(invisibles).toBeGreaterThan(0);
     // … mais le compteur reste à zéro.
     await expect(page.locator('#compteur')).toHaveText('0 mot · 0 caractère');
@@ -339,6 +339,6 @@ test.describe('Caractère invisible', () => {
       return { texte: donnees.getData('text/plain'), html: donnees.getData('text/html') };
     });
     expect(copie.texte).toBe('mot grand');
-    expect(copie.html).not.toContain('​');
+    expect(copie.html).not.toContain('\u200B');
   });
 });

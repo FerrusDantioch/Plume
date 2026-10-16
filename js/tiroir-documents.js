@@ -19,7 +19,7 @@ export function dateLisible(iso) {
 function extrait(html) {
   const doc = new DOMParser().parseFromString(String(html).slice(0, 4000), 'text/html');
   for (const bloc of doc.body.querySelectorAll('p, h1, h2, h3, li, br')) bloc.append(' ');
-  const texte = doc.body.textContent.replace(/​/g, '').replace(/\s+/g, ' ').trim();
+  const texte = doc.body.textContent.replace(/\u200B/g, '').replace(/\s+/g, ' ').trim();
   return texte.length > 140 ? `${texte.slice(0, 140).trimEnd()}…` : texte;
 }
 
@@ -105,7 +105,11 @@ export class TiroirDocuments {
 
   /** Ferme le panneau ; le focus va dans la feuille (et non sur le bouton « Documents »). */
   fermerVersLaFeuille() {
-    this.fenetre.declencheur = this.editeur.racine;
+    // Le focus est placé ici, tout de suite : la fermeture du panneau ne doit
+    // plus le déplacer ensuite (elle est signalée un instant plus tard, et la
+    // personne a pu toucher le titre entre-temps).
+    this.fenetre.declencheur = null;
+    this.fenetre.repli = null;
     this.fenetre.close();
     this.editeur.focaliser();
   }

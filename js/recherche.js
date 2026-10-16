@@ -20,7 +20,7 @@ const surlignagePossible = typeof CSS !== 'undefined' && 'highlights' in CSS && 
 /** Forme simplifiée d'un caractère pour la comparaison (toujours un seul caractère). */
 function simplifier(c) {
   if (c === '’' || c === '‘' || c === 'ʼ') return "'";
-  if (c === ' ' || c === ' ') return ' ';
+  if (c === '\u00A0' || c === '\u202F') return ' ';
   const minuscule = c.toLowerCase();
   return minuscule.length === 1 ? minuscule : c;
 }
@@ -28,7 +28,7 @@ function simplifier(c) {
 /** Forme simplifiée d'un texte, de même longueur (un caractère pour un caractère). */
 function simplifierTexte(texte) {
   const minuscules = texte.toLowerCase();
-  if (minuscules.length === texte.length) return minuscules.replace(/[’‘ʼ]/g, "'").replace(/[  ]/g, ' ');
+  if (minuscules.length === texte.length) return minuscules.replace(/[’‘ʼ]/g, "'").replace(/[\u00A0\u202F]/g, ' ');
   let resultat = ''; // rare : une lettre dont la minuscule s'écrit en deux caractères
   for (let i = 0; i < texte.length; i++) resultat += simplifier(texte[i]);
   return resultat;

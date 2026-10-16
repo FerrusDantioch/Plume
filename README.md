@@ -59,7 +59,7 @@ web local. Il est fourni (`outils/serveur.mjs`) et n'a besoin que de Node.js.
 
 **À chaque essai (Windows)**
 
-1. Ouvre l'Explorateur de fichiers et va dans le dossier `traitement-de-texte`.
+1. Ouvre l'Explorateur de fichiers et va dans le dossier `Plume`.
 2. Clique dans la barre d'adresse en haut de la fenêtre (là où le chemin du dossier est écrit).
 3. Efface ce qui est écrit, tape `cmd`, puis appuie sur Entrée. Une fenêtre noire s'ouvre.
 4. Dans cette fenêtre, tape : `node outils/serveur.mjs` puis appuie sur Entrée.
@@ -68,7 +68,7 @@ web local. Il est fourni (`outils/serveur.mjs`) et n'a besoin que de Node.js.
 7. Pour arrêter : clique dans la fenêtre noire et appuie sur Ctrl+C, puis ferme-la.
 
 **Sur Mac** : ouvre l'application « Terminal », tape `cd ` (avec un espace),
-glisse le dossier `traitement-de-texte` dans la fenêtre, appuie sur Entrée,
+glisse le dossier `Plume` dans la fenêtre, appuie sur Entrée,
 puis suis les étapes 4 à 7 ci-dessus.
 
 ---
@@ -86,7 +86,7 @@ sont relatifs : elle fonctionne dans ce sous-dossier.
 3. Dans « Repository name », tape `Plume`.
 4. Choisis « Public ». Ne coche aucune autre case. Clique sur « Create repository ».
 5. Sur la page qui s'affiche, clique sur le lien « uploading an existing file ».
-6. Ouvre le dossier `traitement-de-texte` sur ton ordinateur et sélectionne tout son
+6. Ouvre le dossier `Plume` sur ton ordinateur et sélectionne tout son
    contenu, **sauf le dossier `tests`** (il ne sert qu'aux vérifications).
    Glisse cette sélection dans la page de GitHub.
 7. Attends la fin du chargement, puis clique sur le bouton vert « Commit changes ».
@@ -98,7 +98,7 @@ sont relatifs : elle fonctionne dans ce sous-dossier.
 des modifications (le dossier contient déjà un dépôt git local).
 
 1. Installe GitHub Desktop depuis <https://desktop.github.com> et connecte-toi.
-2. Menu « File », puis « Add local repository… », puis choisis le dossier `traitement-de-texte`.
+2. Menu « File », puis « Add local repository… », puis choisis le dossier `Plume`.
 3. Clique sur « Publish repository ». Nom : `Plume`. Décoche « Keep this code private ». Clique sur « Publish repository ».
 4. Fais ensuite les étapes 8 à 10 de la méthode simple.
 
@@ -121,7 +121,7 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
   Le manifeste est un fichier de données (JSON) : il ne peut pas lire `config.js`,
   c'est pourquoi le nom y est recopié. Un test automatique vérifie que les deux
   correspondent. Le titre de la page et la fenêtre « À propos » suivent `config.js`.
-- **Version** : dans `js/config.js`, ligne `version: '1.1.0',` (version actuelle).
+- **Version** : dans `js/config.js`, ligne `version: '1.1.1',` (version actuelle).
 - **Ne change jamais** `idStockage: 'plume'` : c'est le nom de la base de données ;
   le changer rendrait les documents existants invisibles.
 - **Icônes** : elles sont créées par `outils/creer-icones.py` (Python et la
@@ -258,6 +258,7 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
     titres gardent leur propre interligne, plus serré, tant qu'aucun n'est choisi.
 21. **Barre d'outils** : avec la loupe et l'interligne, elle tient sur une ligne à
     partir d'environ 1 360 pixels de large ; en dessous, elle passe sur deux lignes.
+
 ---
 
 ## 7. Limites connues

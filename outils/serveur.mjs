@@ -1,7 +1,7 @@
 // Petit serveur web local pour essayer l'application sur son ordinateur.
 // Il n'a besoin de rien d'autre que Node.js.
 //
-// Utilisation, depuis le dossier traitement-de-texte :
+// Utilisation, depuis le dossier Plume :
 //   node outils/serveur.mjs
 // puis ouvrir http://localhost:8000/plume/ dans le navigateur.
 //

@@ -3,7 +3,7 @@
 import { test, expect, ouvrir, contenu, selectionner } from './aides.js';
 
 const TEXTE =
-  '<h1>Le chat</h1><p>Un chat dort. Le <b>ch</b>at mange. L’autre CHAT !</p><p>Fin du texte, sans résultat.</p>';
+  '<h1>Le chat</h1><p>Un chat dort. Le <b>ch</b>at mange. L’autre CHAT\u00A0!</p><p>Fin du texte, sans résultat.</p>';
 
 async function preparer(page, html = TEXTE) {
   await ouvrir(page);

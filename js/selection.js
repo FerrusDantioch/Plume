@@ -12,7 +12,7 @@ export const BALISES_EN_LIGNE = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'ST
 // Caractère de largeur nulle : il sert de support invisible quand on choisit
 // une mise en forme sans rien sélectionner (le texte tapé ensuite s'y loge).
 // Il n'est jamais compté, ni enregistré, ni copié.
-export const INVISIBLE = '​';
+export const INVISIBLE = '\u200B';
 
 export const estBloc = (n) => n?.nodeType === 1 && BALISES_BLOC.has(n.nodeName);
 export const estListe = (n) => n?.nodeType === 1 && BALISES_LISTE.has(n.nodeName);

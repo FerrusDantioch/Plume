@@ -116,6 +116,40 @@ test.describe('Plusieurs documents', () => {
     await expect(page.locator('#bouton-nouveau-document')).toBeFocused();
   });
 
+  test('juste après la fermeture du panneau, le titre peut être tapé aussitôt', async ({ page }) => {
+    await ouvrir(page);
+    await page.fill('#titre-document', 'Premier');
+    await attendreEnregistrement(page);
+    // Clique sur un bouton du panneau, puis met le focus dans le titre dès que
+    // le panneau se ferme : le focus doit y rester.
+    const focusApres = (selecteur) =>
+      page.evaluate(
+        (s) =>
+          new Promise((resoudre) => {
+            const tiroir = document.getElementById('tiroir-documents');
+            new MutationObserver((_, observateur) => {
+              if (tiroir.open) return;
+              observateur.disconnect();
+              document.getElementById('titre-document').focus();
+              setTimeout(() => resoudre(document.activeElement.id), 100);
+            }).observe(tiroir, { attributes: true, attributeFilter: ['open'] });
+            document.querySelector(s).click();
+          }),
+        selecteur,
+      );
+
+    await ouvrirTiroir(page);
+    expect(await focusApres('#bouton-nouveau-document')).toBe('titre-document');
+    await page.keyboard.type('Second');
+    await expect(page.locator('#titre-document')).toHaveValue('Second');
+    expect(await contenu(page)).toBe('<p><br></p>');
+
+    await attendreEnregistrement(page);
+    await ouvrirTiroir(page);
+    expect(await focusApres('#liste-documents .document:not([aria-current]) .document-ouvrir')).toBe('titre-document');
+    await expect(page.locator('#titre-document')).toHaveValue('Premier');
+  });
+
   test('mettre le document ouvert à la corbeille ouvre un autre document', async ({ page }) => {
     await ouvrir(page);
     await page.fill('#titre-document', 'A garder');

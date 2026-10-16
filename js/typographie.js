@@ -8,8 +8,8 @@
 
 import { INVISIBLE, blocDe, plageDans, selectionner } from './selection.js';
 
-export const ESPACE_INSECABLE = ' ';
-export const ESPACE_FINE = ' ';
+export const ESPACE_INSECABLE = '\u00A0';
+export const ESPACE_FINE = '\u202F';
 
 const DECLENCHEURS = new Set([':', ';', '!', '?', '"', '«', '»', "'", ' ']);
 const ESPACES = new Set([' ', ESPACE_INSECABLE, ESPACE_FINE, '\t', '\n']);
