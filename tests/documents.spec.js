@@ -72,7 +72,7 @@ test.describe('Plusieurs documents', () => {
     await expect(page.locator('#tiroir-documents')).toBeVisible();
   }
 
-  test('créer, ouvrir, dupliquer, supprimer avec confirmation', async ({ page }) => {
+  test('créer, ouvrir, dupliquer, mettre à la corbeille', async ({ page }) => {
     await ouvrir(page);
     await page.fill('#titre-document', 'Premier');
     await page.locator('#feuille').click();
@@ -107,29 +107,16 @@ test.describe('Plusieurs documents', () => {
     await expect(titres).toHaveCount(3);
     await expect(page.locator('#liste-documents .document-titre', { hasText: 'Premier (copie)' })).toBeVisible();
 
-    // Supprimer : la confirmation s'ouvre, « Annuler » a le focus.
-    await page.getByRole('button', { name: 'Supprimer « Second »' }).click();
-    const question = page.locator('#fenetre-question');
-    await expect(question).toBeVisible();
-    await expect(question.locator('.question-message')).toHaveText('Supprimer définitivement « Second » ? Cette action est irréversible.');
-    await expect(question.getByRole('button', { name: 'Annuler' })).toBeFocused();
-    await expect(question.getByRole('button', { name: 'Supprimer' })).toBeVisible();
-    // Entrée sur le bouton par défaut = Annuler : rien n'est supprimé.
-    await page.keyboard.press('Enter');
-    await expect(question).toBeHidden();
-    await expect(titres).toHaveCount(3);
-    // Échap annule aussi.
-    await page.getByRole('button', { name: 'Supprimer « Second »' }).click();
-    await page.keyboard.press('Escape');
-    await expect(titres).toHaveCount(3);
-    // Cette fois on confirme.
-    await page.getByRole('button', { name: 'Supprimer « Second »' }).click();
-    await question.getByRole('button', { name: 'Supprimer' }).click();
+    // Mettre à la corbeille : pas de question (le document reste récupérable).
+    await page.getByRole('button', { name: 'Mettre « Second » à la corbeille' }).click();
     await expect(titres).toHaveCount(2);
     await expect(titres).not.toContainText(['Second']);
+    await expect(page.locator('.message', { hasText: '« Second » est dans la corbeille.' })).toBeVisible();
+    await expect(page.locator('#libelle-corbeille')).toHaveText('Corbeille (1)');
+    await expect(page.locator('#bouton-nouveau-document')).toBeFocused();
   });
 
-  test('supprimer le document ouvert ouvre un autre document', async ({ page }) => {
+  test('mettre le document ouvert à la corbeille ouvre un autre document', async ({ page }) => {
     await ouvrir(page);
     await page.fill('#titre-document', 'A garder');
     await attendreEnregistrement(page);
@@ -139,8 +126,7 @@ test.describe('Plusieurs documents', () => {
     await page.fill('#titre-document', 'A jeter');
     await attendreEnregistrement(page);
     await ouvrirTiroir(page);
-    await page.getByRole('button', { name: 'Supprimer « A jeter »' }).click();
-    await page.locator('#fenetre-question').getByRole('button', { name: 'Supprimer' }).click();
+    await page.getByRole('button', { name: 'Mettre « A jeter » à la corbeille' }).click();
     await expect(page.locator('#liste-documents .document-titre')).toHaveText(['A garder']);
     await page.keyboard.press('Escape');
     await expect(page.locator('#titre-document')).toHaveValue('A garder');

@@ -70,6 +70,12 @@
     <symbol id="i-coche" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
     <symbol id="i-chevron-gauche" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
     <symbol id="i-chevron-droite" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-chevron-haut" viewBox="0 0 24 24"><path d="m5 15 7-7 7 7"/></symbol>
+    <symbol id="i-chevron-bas" viewBox="0 0 24 24"><path d="m5 9 7 7 7-7"/></symbol>
+    <symbol id="i-rechercher" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></symbol>
+    <symbol id="i-interligne" viewBox="0 0 24 24"><path d="M11 6h9M11 12h9M11 18h9"/><path d="M5 4v16M2.5 6.5 5 4l2.5 2.5M2.5 17.5 5 20l2.5-2.5"/></symbol>
+    <symbol id="i-remettre" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-4"/></symbol>
+    <symbol id="i-ouvrir" viewBox="0 0 24 24"><path d="M4 19V6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v2"/><path d="M4 19h13.5l3-8H7.5z"/></symbol>
     <symbol id="i-sauvegarder" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14"/></symbol>
     <symbol id="i-restaurer" viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 20h14"/></symbol>
     <symbol id="i-installer" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11l3 3 3-3"/></symbol>
@@ -105,6 +111,11 @@
       <svg class="icone" aria-hidden="true"><use href="#i-chevron-gauche"></use></svg>
     </button>
     <div id="barre-outils" class="barre-outils" role="region" aria-label="Mise en forme">
+      <div class="groupe" role="group" aria-label="Rechercher">
+        <button id="bouton-rechercher" class="bouton bouton-discret" type="button" aria-controls="panneau-recherche" aria-expanded="false" aria-label="Rechercher et remplacer" title="Rechercher et remplacer (Ctrl+F)">
+          <svg class="icone" aria-hidden="true"><use href="#i-rechercher"></use></svg>
+        </button>
+      </div>
       <div class="groupe" role="group" aria-label="Historique">
         <button class="bouton bouton-discret" type="button" data-commande="annuler" aria-label="Annuler" title="Annuler (Ctrl+Z)" disabled>
           <svg class="icone" aria-hidden="true"><use href="#i-annuler"></use></svg>
@@ -159,7 +170,7 @@
           <span class="temoin" aria-hidden="true" data-aucun></span>
         </button>
       </div>
-      <div class="groupe" role="group" aria-label="Alignement">
+      <div class="groupe" role="group" aria-label="Alignement et interligne">
         <button class="bouton bouton-discret" type="button" data-commande="aligner-gauche" aria-pressed="true" aria-label="Aligner à gauche" title="Aligner à gauche">
           <svg class="icone" aria-hidden="true"><use href="#i-aligner-gauche"></use></svg>
         </button>
@@ -171,6 +182,9 @@
         </button>
         <button class="bouton bouton-discret" type="button" data-commande="justifier" aria-pressed="false" aria-label="Justifier" title="Justifier">
           <svg class="icone" aria-hidden="true"><use href="#i-justifier"></use></svg>
+        </button>
+        <button id="bouton-interligne" class="bouton bouton-discret" type="button" aria-haspopup="dialog" aria-label="Interligne" title="Interligne (espace entre les lignes)">
+          <svg class="icone" aria-hidden="true"><use href="#i-interligne"></use></svg>
         </button>
       </div>
       <div class="groupe" role="group" aria-label="Listes">
@@ -192,6 +206,28 @@
     </button>
     </div>
 
+    <!-- Rechercher et remplacer (loupe de la barre d'outils, ou Ctrl+F) -->
+    <section id="panneau-recherche" class="panneau-recherche" role="search" aria-label="Rechercher et remplacer" hidden>
+      <div class="ligne-recherche">
+        <input id="champ-recherche" class="champ" type="text" placeholder="Rechercher…" aria-label="Texte à rechercher" aria-describedby="resultat-recherche" autocomplete="off" spellcheck="false" enterkeyhint="search">
+        <p id="resultat-recherche" class="resultat-recherche" aria-live="polite"></p>
+        <button class="bouton bouton-icone bouton-discret" type="button" data-action="precedent" aria-label="Résultat précédent" title="Résultat précédent (Maj+Entrée)">
+          <svg class="icone" aria-hidden="true"><use href="#i-chevron-haut"></use></svg>
+        </button>
+        <button class="bouton bouton-icone bouton-discret" type="button" data-action="suivant" aria-label="Résultat suivant" title="Résultat suivant (Entrée)">
+          <svg class="icone" aria-hidden="true"><use href="#i-chevron-bas"></use></svg>
+        </button>
+        <button class="bouton bouton-icone bouton-discret" type="button" data-action="fermer" aria-label="Fermer la recherche" title="Fermer (Échap)">
+          <svg class="icone" aria-hidden="true"><use href="#i-fermer"></use></svg>
+        </button>
+      </div>
+      <div class="ligne-recherche">
+        <input id="champ-remplacement" class="champ" type="text" placeholder="Remplacer par…" aria-label="Remplacer par" autocomplete="off" spellcheck="true" lang="fr">
+        <button class="bouton" type="button" data-action="remplacer">Remplacer</button>
+        <button class="bouton" type="button" data-action="tout-remplacer">Tout remplacer</button>
+      </div>
+    </section>
+
     <!-- La feuille de rédaction -->
     <main id="zone-ecriture" class="zone-ecriture">
       <div id="feuille" class="feuille" contenteditable="false" role="textbox" aria-multiline="true"
@@ -207,6 +243,7 @@
 
   <div id="zone-messages" class="zone-messages" role="status" aria-live="polite"></div>
   <input id="fichier-restauration" type="file" accept=".json,application/json" hidden>
+  <input id="fichier-import" type="file" accept=".docx,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
 
   <!-- Panneau « Mes documents » -->
   <dialog id="tiroir-documents" class="tiroir" aria-labelledby="titre-tiroir" data-fermeture-exterieure>
@@ -221,8 +258,43 @@
         <svg class="icone" aria-hidden="true"><use href="#i-plus"></use></svg>
         Nouveau document
       </button>
+      <button id="bouton-ouvrir-fichier" class="bouton" type="button" aria-describedby="detail-ouvrir-fichier">
+        <svg class="icone" aria-hidden="true"><use href="#i-ouvrir"></use></svg>
+        Ouvrir un fichier
+      </button>
+      <p id="detail-ouvrir-fichier" class="texte-discret">Fichier Word (.docx) ou texte (.txt) : il devient un nouveau document.</p>
     </div>
     <ul id="liste-documents" class="liste-documents" aria-label="Liste des documents, du plus récent au plus ancien"></ul>
+    <div class="tiroir-pied">
+      <button id="bouton-corbeille" class="bouton bouton-discret" type="button" aria-haspopup="dialog" aria-controls="tiroir-corbeille">
+        <svg class="icone" aria-hidden="true"><use href="#i-supprimer"></use></svg>
+        <span id="libelle-corbeille">Corbeille</span>
+      </button>
+    </div>
+  </dialog>
+
+  <!-- Corbeille -->
+  <dialog id="tiroir-corbeille" class="tiroir" aria-labelledby="titre-corbeille" aria-describedby="description-corbeille" data-fermeture-exterieure>
+    <div class="fenetre-entete">
+      <h2 id="titre-corbeille">Corbeille</h2>
+      <button class="bouton bouton-icone bouton-discret" type="button" data-fermer aria-label="Fermer la corbeille" title="Fermer">
+        <svg class="icone" aria-hidden="true"><use href="#i-fermer"></use></svg>
+      </button>
+    </div>
+    <div class="tiroir-actions">
+      <button id="bouton-retour-documents" class="bouton" type="button">
+        <svg class="icone" aria-hidden="true"><use href="#i-chevron-gauche"></use></svg>
+        Retour à mes documents
+      </button>
+      <p id="description-corbeille" class="texte-discret">Les documents restent ici 30 jours. Ensuite, ils sont supprimés définitivement.</p>
+    </div>
+    <ul id="liste-corbeille" class="liste-documents" aria-label="Documents dans la corbeille, du dernier supprimé au premier"></ul>
+    <div class="tiroir-pied">
+      <button id="bouton-vider-corbeille" class="bouton bouton-discret" type="button">
+        <svg class="icone" aria-hidden="true"><use href="#i-supprimer"></use></svg>
+        Vider la corbeille
+      </button>
+    </div>
   </dialog>
 
   <!-- Menu -->
@@ -230,6 +302,14 @@
     <fieldset class="menu-section" id="choix-themes">
       <legend class="etiquette">Thème</legend>
     </fieldset>
+    <div class="menu-section">
+      <p class="etiquette">Écriture</p>
+      <label class="case-a-cocher">
+        <input id="case-typographie" type="checkbox" aria-describedby="detail-typographie">
+        Typographie française automatique
+      </label>
+      <p id="detail-typographie" class="texte-discret">Espace insécable avant : ; ! ? et à l'intérieur des « », apostrophe ’ au lieu de '.</p>
+    </div>
     <div class="menu-section">
       <p class="etiquette">Mes documents</p>
       <button id="bouton-sauvegarder" class="bouton bouton-discret" type="button">

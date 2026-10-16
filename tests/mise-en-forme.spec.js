@@ -62,6 +62,38 @@ test.describe('Gras, italique, souligné, barré', () => {
     expect(await contenu(page)).toBe('<p>avant<s> barré</s></p>');
   });
 
+  test('gras sur une sélection en partie grasse : tout devient gras, puis tout redevient normal', async ({ page }) => {
+    await remplir(page, '<p>un <b>deux</b> trois</p>');
+    await selectionner(page, 'un', { fin: 'trois' });
+    await expect(page.locator('[data-commande="gras"]')).toHaveAttribute('aria-pressed', 'false');
+    await commande(page, 'gras');
+    expect(await contenu(page)).toBe('<p><b>un deux trois</b></p>');
+    await commande(page, 'gras');
+    expect(await contenu(page)).toBe('<p>un deux trois</p>');
+  });
+
+  test('gras dans un titre (déjà gras) : le bouton le retire, puis le remet', async ({ page }) => {
+    await remplir(page, '<h1>Grand titre</h1>');
+    await selectionner(page, 'titre');
+    await expect(page.locator('[data-commande="gras"]')).toHaveAttribute('aria-pressed', 'true');
+    await commande(page, 'gras');
+    expect(await contenu(page)).toBe('<h1>Grand <span style="font-weight: normal;">titre</span></h1>');
+    expect((await styleDu(page, 'titre')).gras).toBe(false);
+    await expect(page.locator('[data-commande="gras"]')).toHaveAttribute('aria-pressed', 'false');
+    await commande(page, 'gras');
+    expect(await contenu(page)).toBe('<h1>Grand titre</h1>');
+  });
+
+  test('italique et souligné imbriqués, puis retrait du seul souligné', async ({ page }) => {
+    await remplir(page, '<p><em>un <u>deux</u> trois</em></p>');
+    await selectionner(page, 'deux');
+    await expect(page.locator('[data-commande="italique"]')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('[data-commande="souligne"]')).toHaveAttribute('aria-pressed', 'true');
+    await page.keyboard.press('Control+u');
+    expect(await contenu(page)).toBe('<p><em>un deux trois</em></p>');
+    expect((await styleDu(page, 'deux')).italique).toBe(true);
+  });
+
   test('gras sans sélection : le texte tapé ensuite est en gras', async ({ page }) => {
     await remplir(page, '<p>avant</p>');
     await curseurApres(page, 'avant');

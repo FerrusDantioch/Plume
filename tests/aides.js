@@ -25,6 +25,24 @@ export const test = base.extend({
 
 export { expect };
 
+/** Document d'essai contenant toutes les mises en forme (exports, aller-retour Word). */
+export const DOCUMENT_ESSAI =
+  '<h1>Titre principal</h1>' +
+  '<p>Un texte <b>gras</b>, <i>italique</i>, <u>souligné</u>, <s>barré</s>, <span style="color: rgb(229, 72, 77);">rouge</span>, ' +
+  '<span style="background-color: rgb(255, 224, 102);">surligné</span>, <span style="font-size: 18pt;">grand</span> et ' +
+  '<span style="font-family: &quot;JetBrains Mono&quot;, ui-monospace, monospace;">machine</span>.</p>' +
+  '<p style="text-align: center;">Centré &amp; spécial &lt;ok&gt; « guillemets » 😀</p>' +
+  '<p>Ligne un\nLigne deux</p>' +
+  '<p><br></p>' +
+  '<h2>Listes</h2>' +
+  '<ul><li>premier</li><li>second</li></ul>' +
+  '<ol><li>un</li><li>deux</li></ol>' +
+  '<p>Entre deux listes</p>' +
+  '<ol><li>reprise</li></ol>' +
+  '<h3>Fin</h3>' +
+  '<p><b>Gras <span style="font-weight: normal;">puis normal</span></b></p>';
+
+
 /** Ouvre l'application et attend qu'elle soit prête. */
 export async function ouvrir(page) {
   await page.goto('./');

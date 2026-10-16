@@ -9,11 +9,16 @@ import { isoler, deballer } from './mise-en-forme.js';
 
 const BALISES_HAUT_NIVEAU = new Set(['P', 'H1', 'H2', 'H3', 'UL', 'OL']);
 
-/** Remplace un bloc par un autre type de bloc, en gardant contenu et alignement. */
+/** Recopie les réglages de paragraphe (alignement, interligne) d'un bloc à l'autre. */
+export function copierReglagesBloc(source, cible) {
+  if (source.style?.textAlign) cible.style.textAlign = source.style.textAlign;
+  if (source.style?.lineHeight) cible.style.lineHeight = source.style.lineHeight;
+}
+
+/** Remplace un bloc par un autre type de bloc, en gardant contenu, alignement et interligne. */
 export function changerBalise(bloc, balise) {
   const nouveau = document.createElement(balise);
-  const alignement = bloc.style?.textAlign;
-  if (alignement) nouveau.style.textAlign = alignement;
+  copierReglagesBloc(bloc, nouveau);
   while (bloc.firstChild) nouveau.appendChild(bloc.firstChild);
   bloc.parentNode.replaceChild(nouveau, bloc);
   return nouveau;
@@ -89,6 +94,30 @@ export function aligner(blocs, valeur) {
   for (const bloc of blocs) {
     if (valeur === 'left') bloc.style.removeProperty('text-align');
     else bloc.style.textAlign = valeur;
+    if (bloc.style.length === 0) bloc.removeAttribute('style');
+  }
+}
+
+// Interlignes proposés. null : interligne par défaut (1,5).
+export const INTERLIGNES = [
+  { nom: 'Simple', valeur: '1.15' },
+  { nom: '1,5 (par défaut)', valeur: null },
+  { nom: 'Double', valeur: '2' },
+];
+
+/** Interligne permis le plus proche d'un rapport (ex. 1.08 → '1.15'), ou null pour 1,5. */
+export function interligneProche(rapport) {
+  if (!(rapport > 0)) return null;
+  if (rapport < 1.33) return '1.15';
+  if (rapport < 1.75) return null;
+  return '2';
+}
+
+/** Interligne : '1.15', '2', ou null (par défaut). */
+export function espacer(blocs, valeur) {
+  for (const bloc of blocs) {
+    if (valeur) bloc.style.lineHeight = valeur;
+    else bloc.style.removeProperty('line-height');
     if (bloc.style.length === 0) bloc.removeAttribute('style');
   }
 }

@@ -7,6 +7,7 @@
 //   <ul>, <ol>      → paragraphes de liste à puces ou numérotée
 //   <b> <i> <u> <s> → gras, italique, souligné, barré
 //   styles <span>   → taille, police, couleur, surlignage
+//   styles de bloc  → alignement, interligne
 // Attention : Word refuse un fichier dont les balises ne sont pas dans
 // l'ordre prévu par la norme. L'ordre ci-dessous est volontaire.
 
@@ -126,6 +127,9 @@ function paragraphe(bloc, { style = null, numero = null } = {}) {
   const p = [];
   if (style) p.push(`<w:pStyle w:val="${style}"/>`);
   if (numero) p.push(`<w:numPr><w:ilvl w:val="0"/><w:numId w:val="${numero}"/></w:numPr>`);
+  // Interligne : 240 = une ligne (1,5 → 360, comme le style par défaut).
+  const interligne = Number(bloc.style?.lineHeight);
+  if (interligne > 0) p.push(`<w:spacing w:line="${Math.round(interligne * 240)}" w:lineRule="auto"/>`);
   const alignement = ALIGNEMENTS[bloc.style?.textAlign];
   if (alignement) p.push(`<w:jc w:val="${alignement}"/>`);
   const proprietes = p.length ? `<w:pPr>${p.join('')}</w:pPr>` : '';

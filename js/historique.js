@@ -28,16 +28,20 @@ export class Historique {
 
   /**
    * Note la sélection juste avant une action : si l'on annule cette action,
-   * c'est cette sélection qui sera rétablie.
+   * c'est cette sélection qui sera rétablie. Par défaut, la sélection actuelle.
    */
-  noterSelection() {
+  noterSelection(selection = this.lire().selection) {
     const courant = this.etats[this.index];
-    if (courant) courant.selection = this.lire().selection;
+    if (courant) courant.selection = selection;
   }
 
-  /** Enregistre l'état actuel comme nouvelle étape. Renvoie true si ajouté. */
-  enregistrer() {
+  /**
+   * Enregistre l'état actuel comme nouvelle étape. Renvoie true si ajouté.
+   * `selection` remplace, si elle est donnée, la sélection actuelle.
+   */
+  enregistrer(selection) {
     const etat = this.lire();
+    if (selection !== undefined) etat.selection = selection;
     const courant = this.etats[this.index];
     if (courant && courant.html === etat.html) {
       courant.selection = etat.selection;

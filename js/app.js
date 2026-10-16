@@ -12,6 +12,8 @@ import { TiroirDocuments, dateLisible } from './tiroir-documents.js';
 import { initialiserFenetres, ouvrirFenetre, demander, informer, afficherMessage, remplirAPropos } from './ui.js';
 import { ExportPdf } from './impression.js';
 import { Exporteur } from './exporter.js';
+import { Recherche } from './recherche.js';
+import { lireFichier, ErreurOuverture } from './importer.js';
 import { demarrerServiceWorker, estInstallee, installationPossible, installer, surChangementInstallation } from './pwa.js';
 
 const CONFIG = globalThis.CONFIG_APP;
@@ -32,15 +34,33 @@ async function demarrer() {
   // --- Éditeur et barre d'outils ---
   const feuille = $('feuille');
   let documents = null;
+  let recherche = null;
   const compteur = creerCompteur($('compteur'));
   const editeur = new Editeur(feuille, {
     surModification: () => {
       documents?.signalerModification();
       compteur.planifier(editeur);
+      recherche?.planifier();
     },
   });
   const barre = new BarreOutils({ barre: $('barre-outils'), editeur });
   editeur.surEtat = (etat) => barre.mettreAJour(etat);
+
+  // Typographie française automatique : activée par défaut.
+  const caseTypographie = $('case-typographie');
+  editeur.typographie = preferences.lire('typographie', true) !== false;
+  caseTypographie.checked = editeur.typographie;
+  caseTypographie.addEventListener('change', () => {
+    editeur.typographie = caseTypographie.checked;
+    preferences.ecrire('typographie', caseTypographie.checked);
+  });
+  recherche = new Recherche({
+    panneau: $('panneau-recherche'),
+    bouton: $('bouton-rechercher'),
+    editeur,
+    zone: $('zone-ecriture'),
+    informer: (texte) => afficherMessage(texte, { duree: 6000 }),
+  });
 
   // --- Documents ---
   const stockage = await ouvrirStockage({ nom: CONFIG.idStockage });
@@ -51,7 +71,10 @@ async function demarrer() {
     editeur,
     champTitre,
     indiquer: creerIndicateur($('etat-enregistrement')),
-    surAffichage: () => compteur.planifier(editeur, true),
+    surAffichage: () => {
+      compteur.planifier(editeur, true);
+      recherche.planifier();
+    },
   });
   await documents.demarrer();
   editeur.activer(true);
@@ -82,8 +105,18 @@ async function demarrer() {
     liste: $('liste-documents'),
     boutonOuvrir: $('bouton-documents'),
     boutonNouveau: $('bouton-nouveau-document'),
+    boutonFichier: $('bouton-ouvrir-fichier'),
+    corbeille: {
+      fenetre: $('tiroir-corbeille'),
+      liste: $('liste-corbeille'),
+      bouton: $('bouton-corbeille'),
+      libelle: $('libelle-corbeille'),
+      boutonRetour: $('bouton-retour-documents'),
+      boutonVider: $('bouton-vider-corbeille'),
+    },
     documents,
     editeur,
+    ouvrirFichier: () => ouvrirUnFichier($('fichier-import'), documents, $('bouton-ouvrir-fichier')),
   });
 
   // --- Export : PDF (impression), Word, texte brut ---
@@ -151,6 +184,13 @@ async function demarrer() {
     if (touche === 'p') {
       e.preventDefault();
       if (!document.querySelector('dialog[open]')) exportPdf.exporter(document.activeElement);
+      return;
+    }
+    // Ctrl+F : rechercher ; Ctrl+H : remplacer (même panneau).
+    if ((touche === 'f' || touche === 'h') && !e.shiftKey) {
+      if (document.querySelector('dialog[open]')) return;
+      e.preventDefault();
+      recherche.ouvrir();
       return;
     }
     // Annuler / Rétablir : sauf dans un champ de saisie (titre…), qui garde
@@ -260,6 +300,52 @@ async function restaurer(fichier, documents, declencheur) {
       declencheur,
     });
   }
+}
+
+// --- Ouvrir un fichier Word ou texte -------------------------------------------
+
+let choixEnAttente = null;
+
+/** Ouvre la fenêtre de choix de fichier ; renvoie le fichier choisi, ou null. */
+function choisirFichier(champ) {
+  choixEnAttente?.(null); // un choix précédent resté sans réponse
+  return new Promise((resoudre) => {
+    const terminer = () => {
+      champ.removeEventListener('change', terminer);
+      champ.removeEventListener('cancel', terminer);
+      choixEnAttente = null;
+      resoudre(champ.files?.[0] ?? null);
+    };
+    choixEnAttente = (valeur) => {
+      champ.removeEventListener('change', terminer);
+      champ.removeEventListener('cancel', terminer);
+      resoudre(valeur);
+    };
+    champ.addEventListener('change', terminer);
+    champ.addEventListener('cancel', terminer);
+    champ.value = '';
+    champ.click();
+  });
+}
+
+/** Choisit un fichier et en fait un nouveau document. Renvoie true si c'est fait. */
+async function ouvrirUnFichier(champ, documents, declencheur) {
+  const fichier = await choisirFichier(champ);
+  if (!fichier) return false;
+  let lu;
+  try {
+    lu = await lireFichier(fichier);
+  } catch (erreur) {
+    if (!(erreur instanceof ErreurOuverture)) console.warn("Ouverture d'un fichier impossible :", erreur);
+    const message = erreur instanceof ErreurOuverture ? erreur.message : "Ce fichier n'a pas pu être ouvert.";
+    await informer({ titre: 'Ouverture impossible', message, declencheur });
+    return false;
+  }
+  const doc = await documents.importer(lu);
+  const ouvert = `« ${titreAffiche(doc)} » est ouvert dans un nouveau document. Le fichier d'origine n'est pas modifié.`;
+  if (lu.remarques.length) await informer({ titre: 'Fichier ouvert', message: `${ouvert} ${lu.remarques.join(' ')}`, declencheur });
+  else afficherMessage(ouvert, { duree: 6000 });
+  return true;
 }
 
 // --- Aides diverses -------------------------------------------------------------

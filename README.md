@@ -20,10 +20,16 @@ Adresse : `https://ferrusdantioch.github.io/Plume/` (dépôt GitHub `FerrusDanti
 - Couleur du texte et surlignage (palettes de pastilles).
 - Styles de paragraphe : Texte normal, Titre 1, Titre 2, Titre 3.
 - Alignement : gauche, centré, droite, justifié. Listes à puces et numérotées.
+- Interligne : simple, 1,5 (par défaut) ou double.
 - Effacer la mise en forme de la sélection.
 - Annuler / Rétablir (boutons, Ctrl+Z, Ctrl+Y, Ctrl+Maj+Z).
+- Rechercher et remplacer (loupe de la barre d'outils, ou Ctrl+F) : une fois ou partout.
+- Typographie française automatique (réglable dans le menu) : espaces insécables
+  avant : ; ! ? et dans les guillemets « », apostrophe ’.
 - Collage toujours en texte brut (chaque ligne devient un paragraphe).
 - Enregistrement automatique, plusieurs documents, compteur de mots et de caractères.
+- Ouvrir un fichier Word (.docx) ou texte (.txt) : il devient un nouveau document.
+- Corbeille : un document supprimé reste récupérable pendant 30 jours.
 - Sauvegarde de tous les documents dans un fichier, et restauration.
 - Bouton « Exporter » : trois formats, le fichier porte le titre du document.
   - PDF : pour imprimer ou envoyer un document figé (feuille blanche, texte noir, couleurs conservées).
@@ -33,7 +39,9 @@ Adresse : `https://ferrusdantioch.github.io/Plume/` (dépôt GitHub `FerrusDanti
 
 Raccourcis clavier : Ctrl+B (gras), Ctrl+I (italique), Ctrl+U (souligné),
 Ctrl+S (enregistrer), Ctrl+P (exporter directement en PDF), Ctrl+Z (annuler),
-Ctrl+Y (rétablir), Maj+Entrée (aller à la ligne sans changer de paragraphe).
+Ctrl+Y (rétablir), Ctrl+F ou Ctrl+H (rechercher et remplacer ; Entrée : résultat
+suivant ; Maj+Entrée : précédent ; Échap : fermer), Maj+Entrée (aller à la ligne
+sans changer de paragraphe).
 
 ---
 
@@ -113,7 +121,7 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
   Le manifeste est un fichier de données (JSON) : il ne peut pas lire `config.js`,
   c'est pourquoi le nom y est recopié. Un test automatique vérifie que les deux
   correspondent. Le titre de la page et la fenêtre « À propos » suivent `config.js`.
-- **Version** : dans `js/config.js`, ligne `version: '1.0.2',` (version actuelle).
+- **Version** : dans `js/config.js`, ligne `version: '1.1.0',` (version actuelle).
 - **Ne change jamais** `idStockage: 'plume'` : c'est le nom de la base de données ;
   le changer rendrait les documents existants invisibles.
 - **Icônes** : elles sont créées par `outils/creer-icones.py` (Python et la
@@ -130,13 +138,18 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
   navigateur, ils disparaissent : fais régulièrement « Menu → Sauvegarder tous mes
   documents ». Le fichier `plume-sauvegarde-AAAA-MM-JJ.json` se restaure avec
   « Menu → Restaurer une sauvegarde ».
+- Un document supprimé va dans la corbeille (« Documents », puis « Corbeille » en
+  bas du panneau). Il peut y être remis pendant 30 jours ; ensuite, il est
+  effacé pour de bon au lancement suivant de l'application.
 - Sur Firefox, au premier enregistrement, une question peut apparaître
   (« stocker des données de façon persistante ») : réponds « Autoriser ». Cela
   protège les documents contre un effacement automatique quand le disque est plein.
 
 ---
 
-## 5 bis. Ouvrir un document exporté dans Word ou Google Docs
+## 5 bis. Échanger des documents avec Word ou Google Docs
+
+### Ouvrir dans Word ou Google Docs un document de Plume
 
 **Sur Android**
 
@@ -150,6 +163,15 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
 - Google Docs : ouvre <https://drive.google.com>, clique sur « Nouveau », puis
   « Importer un fichier », choisis le fichier ; ensuite, clique dessus avec le
   bouton droit, puis « Ouvrir avec » et « Google Docs ».
+
+### Ouvrir dans Plume un document de Word ou de Google Docs
+
+1. Si le document est dans Google Docs : ouvre-le, puis menu « Fichier »,
+   « Télécharger », « Microsoft Word (.docx) ». Le fichier arrive dans « Téléchargements ».
+2. Dans Plume, touche « Documents », puis « Ouvrir un fichier ».
+3. Choisis le fichier (.docx ou .txt). Il devient un nouveau document de Plume ;
+   le fichier d'origine n'est pas modifié.
+4. Si quelque chose n'a pas pu être repris (images, tableaux), un message le dit.
 
 ---
 
@@ -166,10 +188,12 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
    strictement identique à un document existant n'est pas ajouté en double ; un
    document avec le même identifiant mais un contenu différent est ajouté comme
    copie (« (restauré) »). Rien n'est jamais remplacé.
-5. **Mise en forme** : gras, italique et souligné utilisent la commande du
-   navigateur (`execCommand`). Barré, taille, police, couleurs, alignement, listes
-   et styles de paragraphe sont faits par le code de l'application, pour un
-   résultat identique dans tous les navigateurs.
+5. **Mise en forme** : toute la mise en forme (gras, italique, souligné, barré,
+   taille, police, couleurs, alignement, interligne, listes, styles de paragraphe)
+   est faite par le code de l'application, pour un résultat identique dans tous
+   les navigateurs. Depuis la version 1.1.0, cela vaut aussi pour gras, italique et
+   souligné : la commande du navigateur (`execCommand`) mettait plusieurs minutes à
+   mettre en gras un document de 300 pages ; c'est maintenant moins d'une seconde.
 6. **Retour arrière au début d'un paragraphe** : le texte rejoint le paragraphe
    du dessus et en prend le style (comme dans Word). Chrome ajoutait sinon des
    styles parasites.
@@ -203,6 +227,34 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
     de ligne Windows, pour que les accents s'affichent partout.
 15. **Pas d'export Markdown** pour l'instant : ce format pourrait induire certains
     utilisateurs en erreur.
+16. **Corbeille** : mettre un document à la corbeille ne demande pas de confirmation
+    (il reste récupérable), mais le message affiché propose « Annuler ». La
+    suppression définitive et « Vider la corbeille » demandent toujours une
+    confirmation. La sauvegarde dans un fichier ne contient pas la corbeille.
+17. **Recherche** : les majuscules ne comptent pas (« plume » trouve « Plume »),
+    les accents comptent (« a » ne trouve pas « à »). L'apostrophe droite trouve
+    aussi l'apostrophe typographique, et une espace trouve aussi les espaces
+    insécables. Ctrl+F ouvre la recherche de Plume à la place de celle du navigateur.
+    Les résultats sont surlignés sans modifier le document. « Tout remplacer »
+    s'annule en une seule fois avec « Annuler ».
+18. **Ouvrir un fichier** : sont repris le texte, les titres, les listes,
+    l'alignement, l'interligne, le gras, l'italique, le souligné, le barré, les
+    tailles, les couleurs, le surlignage et la police (rangée parmi les trois
+    polices de Plume). Ne sont pas repris : les images, les tableaux (leur texte
+    devient de simples paragraphes), les notes de bas de page, les en-têtes et
+    pieds de page. La police et la taille par défaut du fichier ne sont pas
+    reprises : le texte prend celles de Plume, sauf là où elles avaient été
+    choisies à la main. Les anciens formats (.doc, .odt, .rtf) sont refusés avec
+    une explication. Le titre du nouveau document est le nom du fichier.
+19. **Typographie française** : appliquée seulement pendant la frappe (un texte
+    collé reste tel quel). Espace fine insécable avant ; ! ? et espace insécable
+    avant : et dans « ». Pas d'espace dans « 14:30 », dans « https:// », ni entre
+    « ?! ». Désactivable dans le menu (« Écriture »).
+20. **Interligne** : « Simple » correspond à 1,15 (comme l'interligne simple de
+    Word et Google Docs), « 1,5 » est la valeur par défaut, « Double » vaut 2. Les
+    titres gardent leur propre interligne, plus serré, tant qu'aucun n'est choisi.
+21. **Barre d'outils** : avec la loupe et l'interligne, elle tient sur une ligne à
+    partir d'environ 1 360 pixels de large ; en dessous, elle passe sur deux lignes.
 ---
 
 ## 7. Limites connues
@@ -214,6 +266,11 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
 - L'historique « Annuler » est vidé quand on change de document ou qu'on ferme la page.
 - Dans la fenêtre d'impression, le navigateur peut ajouter la date et l'adresse de
   la page : décocher « En-têtes et pieds de page ».
+- Le surlignage des résultats de recherche demande un navigateur récent (Chrome 105,
+  Firefox 140 ou plus). Sur un Firefox plus ancien, la recherche fonctionne
+  (compteur, défilement, remplacement) mais les résultats ne sont pas colorés.
+- Sur un très long document (350 pages), chaque frappe prend environ 20 ms et
+  « tout en gras » environ une seconde, sur un ordinateur récent.
 
 ---
 
@@ -239,16 +296,20 @@ js/selection.js        outils de sélection
 js/mise-en-forme.js    taille, police, couleurs, barré, effacement
 js/paragraphes.js      titres, listes, alignement, structure
 js/historique.js       Annuler / Rétablir
+js/recherche.js        rechercher et remplacer
+js/typographie.js      typographie française automatique
 js/sanitize.js         nettoyage par liste blanche
 js/palettes.js         tailles, polices et couleurs proposées
 js/barre-outils.js     barre d'outils
 js/documents.js        documents et enregistrement automatique
-js/tiroir-documents.js panneau « Mes documents »
+js/tiroir-documents.js panneaux « Mes documents » et « Corbeille »
+js/importer.js         « Ouvrir un fichier » (Word ou texte)
+js/import-docx.js      lecture d'un fichier Word (.docx)
 js/impression.js       export PDF
 js/exporter.js         fenêtre « Exporter » (choix du format)
 js/export-docx.js      export Word (.docx)
 js/export-texte.js     export texte brut (.txt)
-js/zip.js              fabrication d'archives ZIP            (commun à la suite)
+js/zip.js              fabrication et lecture d'archives ZIP (commun à la suite)
 fonts/                 polices (.woff2) et leurs licences
 icons/                 icônes de l'application
 assets/                logo de l'Omni-système
@@ -273,7 +334,8 @@ npm test
 ```
 
 L'analyse du PDF demande aussi Python 3 avec `pdfplumber` et `pypdfium2`
-(sinon ce test est ignoré).
+(sinon ce test est ignoré). Les fichiers Word d'essai sont dans `tests/fichiers` ;
+`tests/fichiers/creer-fichiers.py` les refabrique (python-docx et LibreOffice).
 
 ---
 
@@ -295,8 +357,14 @@ L'analyse du PDF demande aussi Python 3 avec `pdfplumber` et `pypdfium2`
 12. Exporter → Word (.docx), puis ouvrir le fichier dans Word ou Google Docs : titres, gras, couleurs, surlignage et listes sont conservés.
 13. Exporter → Texte brut (.txt), puis ouvrir le fichier : les accents s'affichent correctement.
 14. Couper le réseau (mode avion), recharger : l'application s'ouvre et enregistre.
-15. Android : pendant la frappe, le clavier ouvert, la barre d'outils reste visible et défile au doigt.
-16. Android : Menu → Installer l'application ; l'icône violette apparaît sur l'écran d'accueil.
+15. Taper « Bonjour! Il a dit "oui" et l'a fait ». Le texte devient « Bonjour ! Il a dit « oui » et l’a fait » (petites espaces avant ! et dans les guillemets).
+16. Ctrl+F (ou la loupe), taper « oui » : le compteur indique « 1 sur 1 » et le mot est coloré. Taper « non » dans « Remplacer par… », cliquer « Tout remplacer », puis « Annuler » : « oui » revient.
+17. Sélectionner un paragraphe, bouton Interligne (à droite des alignements), « Double » : les lignes s'écartent.
+18. Documents → mettre un document à la corbeille ; « Corbeille » en bas du panneau → « Remettre » : il revient.
+19. Documents → « Ouvrir un fichier » → choisir le fichier Word exporté au point 12 : il s'ouvre avec ses titres, couleurs et listes.
+20. Ouvrir un fichier Word venant de Google Docs (Fichier → Télécharger → Microsoft Word) : le texte et sa mise en forme apparaissent.
+21. Android : pendant la frappe, le clavier ouvert, la barre d'outils reste visible et défile au doigt.
+22. Android : Menu → Installer l'application ; l'icône violette apparaît sur l'écran d'accueil.
 
 ---
 

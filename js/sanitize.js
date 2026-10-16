@@ -10,7 +10,7 @@
 // contenu neuf, élément par élément : rien n'est copié tel quel.
 
 import { policeDepuisCss, versHexa } from './palettes.js';
-import { reparerStructure } from './paragraphes.js';
+import { reparerStructure, interligneProche } from './paragraphes.js';
 import { INVISIBLE } from './selection.js';
 
 const BALISES_PERMISES = new Set(['P', 'BR', 'H1', 'H2', 'H3', 'UL', 'OL', 'LI', 'STRONG', 'B', 'EM', 'I', 'U', 'S', 'SPAN']);
@@ -52,6 +52,14 @@ const STYLES = {
   },
 };
 
+// Interligne : seulement sur un paragraphe, un titre ou un élément de liste,
+// et seulement l'une des valeurs proposées (simple ou double).
+const BLOCS_AVEC_INTERLIGNE = new Set(['P', 'H1', 'H2', 'H3', 'LI']);
+
+function interligne(v) {
+  return /^\d(\.\d+)?$/.test(v) ? interligneProche(Number(v)) : null;
+}
+
 function copierStyles(source, cible) {
   if (!source.getAttribute('style') || !source.style) return;
   for (const [propriete, verifier] of Object.entries(STYLES)) {
@@ -59,6 +67,10 @@ function copierStyles(source, cible) {
     if (!valeur) continue;
     const propre = verifier(valeur, source);
     if (propre) cible.style.setProperty(propriete, propre);
+  }
+  if (BLOCS_AVEC_INTERLIGNE.has(cible.nodeName)) {
+    const propre = interligne(source.style.getPropertyValue('line-height').trim());
+    if (propre) cible.style.setProperty('line-height', propre);
   }
 }
 

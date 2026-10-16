@@ -4,25 +4,9 @@
 import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { test, expect, ouvrir } from './aides.js';
+import { test, expect, ouvrir, DOCUMENT_ESSAI } from './aides.js';
 
 const ANALYSEUR = fileURLToPath(new URL('./analyser-docx.py', import.meta.url));
-
-export const DOCUMENT_ESSAI =
-  '<h1>Titre principal</h1>' +
-  '<p>Un texte <b>gras</b>, <i>italique</i>, <u>souligné</u>, <s>barré</s>, <span style="color: rgb(229, 72, 77);">rouge</span>, ' +
-  '<span style="background-color: rgb(255, 224, 102);">surligné</span>, <span style="font-size: 18pt;">grand</span> et ' +
-  '<span style="font-family: &quot;JetBrains Mono&quot;, ui-monospace, monospace;">machine</span>.</p>' +
-  '<p style="text-align: center;">Centré &amp; spécial &lt;ok&gt; « guillemets » 😀</p>' +
-  '<p>Ligne un\nLigne deux</p>' +
-  '<p><br></p>' +
-  '<h2>Listes</h2>' +
-  '<ul><li>premier</li><li>second</li></ul>' +
-  '<ol><li>un</li><li>deux</li></ol>' +
-  '<p>Entre deux listes</p>' +
-  '<ol><li>reprise</li></ol>' +
-  '<h3>Fin</h3>' +
-  '<p><b>Gras <span style="font-weight: normal;">puis normal</span></b></p>';
 
 async function preparer(page) {
   await ouvrir(page);

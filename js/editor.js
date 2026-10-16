@@ -2,8 +2,9 @@
 // de mise en forme, l'historique, le collage et le compteur de mots.
 //
 // Rappel des pièges traités ici :
-// - document.execCommand ne sert que pour gras, italique, souligné, barré ;
-//   le reste est fait à la main (mise-en-forme.js, paragraphes.js) ;
+// - toute la mise en forme est faite à la main (mise-en-forme.js,
+//   paragraphes.js) : document.execCommand ne sert plus qu'à insérer et
+//   supprimer du texte (collage, couper) ;
 // - l'annulation du navigateur est remplacée par notre historique ;
 // - le collage insère toujours du texte brut ;
 // - quand une commande est lancée depuis un menu, on restaure d'abord la
@@ -14,11 +15,13 @@ import {
   parcourir, plageDans, positionDe, selectionner, textesDe, avecSelectionConservee,
 } from './selection.js';
 import {
-  styler, effacerFormat, barrer, estBarre, insererSupportInvisible, nettoyerEnLigne, nettoyerStylesAjoutes, taillePt,
+  styler, effacerFormat, barrer, estBarre, aLeFormat, appliquerFormat, insererSupportInvisible, nettoyerEnLigne,
+  nettoyerStylesAjoutes, taillePt,
 } from './mise-en-forme.js';
-import { appliquerStyleParagraphe, basculerListe, aligner, reparerStructure } from './paragraphes.js';
+import { appliquerStyleParagraphe, basculerListe, aligner, espacer, copierReglagesBloc, reparerStructure } from './paragraphes.js';
 import { contenuPropre } from './sanitize.js';
 import { Historique } from './historique.js';
+import { corrigerTypographie } from './typographie.js';
 import { TAILLES, POLICES, policeDepuisCss, versHexa } from './palettes.js';
 
 const DELAI_FRAPPE = 600; // ms sans frappe avant de créer une étape d'annulation
@@ -41,6 +44,8 @@ export class Editeur {
     this.minuterieFrappe = 0;
     this.minuterieMenage = 0;
     this.demandeEtat = 0;
+    this.typographie = true; // typographie française automatique (voir typographie.js)
+    this.collageEnCours = false;
     this.segmenteur = 'Segmenter' in Intl ? new Intl.Segmenter('fr', { granularity: 'grapheme' }) : null;
 
     this.historique = new Historique({
@@ -78,8 +83,9 @@ export class Editeur {
     r.addEventListener('compositionstart', () => {
       this.composition = true;
     });
-    r.addEventListener('compositionend', () => {
+    r.addEventListener('compositionend', (e) => {
       this.composition = false;
+      if (this.typographie && e.data) corrigerTypographie(this.racine, e.data.at(-1));
       this.reparer();
       this.planifierEtape();
     });
@@ -119,6 +125,9 @@ export class Editeur {
   }
 
   apresSaisie(e) {
+    if (this.typographie && !this.composition && !this.collageEnCours && e.inputType === 'insertText' && e.data) {
+      corrigerTypographie(this.racine, e.data.at(-1));
+    }
     if (!this.composition && (e.inputType !== 'insertText' || !this.racine.firstElementChild)) this.reparer();
     this.planifierEtape();
     this.surModification();
@@ -256,15 +265,23 @@ export class Editeur {
   // --- Commandes : caractères -----------------------------------------------
 
   gras() {
-    this.executer(() => document.execCommand('bold'));
+    this.basculerFormat('gras');
   }
 
   italique() {
-    this.executer(() => document.execCommand('italic'));
+    this.basculerFormat('italique');
   }
 
   souligne() {
-    this.executer(() => document.execCommand('underline'));
+    this.basculerFormat('souligne');
+  }
+
+  /** Gras, italique ou souligné : retiré si tout le texte l'a déjà, sinon ajouté. */
+  basculerFormat(nom) {
+    this.surTextes((textes) => {
+      const activer = !textes.every((t) => aLeFormat(t, nom, this.racine));
+      for (const texte of textes) appliquerFormat(texte, nom, activer, this.racine);
+    });
   }
 
   /** Barré : fait à la main, car les navigateurs le traitent différemment. */
@@ -354,6 +371,11 @@ export class Editeur {
   /** Alignement : 'left', 'center', 'right' ou 'justify'. */
   alignement(valeur) {
     this.surBlocs((blocs) => aligner(blocs, valeur));
+  }
+
+  /** Interligne : '1.15' (simple), '2' (double) ou null (1,5, par défaut). */
+  interligne(valeur) {
+    this.surBlocs((blocs) => espacer(blocs, valeur));
   }
 
   /** Liste : 'UL' (puces) ou 'OL' (numérotée). */
@@ -449,6 +471,42 @@ export class Editeur {
     if (this.historique.enregistrer()) this.planifierEtat();
   }
 
+  // --- Remplacement (rechercher et remplacer) ---------------------------------
+
+  /**
+   * Remplace le texte de plusieurs plages (résultats d'une recherche) par
+   * `texte`, en une seule étape d'annulation. Chaque plage commence et finit
+   * dans un nœud de texte d'un même bloc. Le texte de remplacement prend la
+   * mise en forme du début du passage remplacé. Le focus ne bouge pas (il
+   * reste dans le panneau de recherche).
+   */
+  remplacerTexte(plages, texte) {
+    if (plages.length === 0) return false;
+    this.validerFrappe();
+    const racine = this.racine;
+    const premiere = plages[0];
+    const debut = positionDe(racine, premiere.startContainer, premiere.startOffset);
+    this.historique.noterSelection({ debut, fin: positionDe(racine, premiere.endContainer, premiere.endOffset) });
+    const blocs = new Set();
+    // De la dernière à la première : les positions des plages précédentes
+    // ne bougent pas pendant le remplacement.
+    for (const plage of [...plages].reverse()) {
+      const bloc = blocDe(plage.startContainer, racine) ?? racine;
+      blocs.add(bloc);
+      remplacerPlage(plage, texte, bloc);
+    }
+    for (const bloc of blocs) if (bloc.isConnected) nettoyerEnLigne(bloc);
+    reparerStructure(racine);
+    nettoyerStylesAjoutes(racine);
+    const apres = debut + texte.length;
+    this.historique.enregistrer({ debut: apres, fin: apres });
+    this.memoire = null;
+    this.surModification();
+    this.majIndicationVide();
+    this.planifierEtat(true);
+    return true;
+  }
+
   // --- Collage, copie, dépôt ----------------------------------------------------
 
   surCollage(e) {
@@ -461,11 +519,17 @@ export class Editeur {
   collerTexte(texte) {
     if (!texte) return;
     const lignes = texte.replace(/\r\n?/g, '\n').replaceAll(INVISIBLE, '').split('\n');
-    this.executer((plage) => {
-      if (!plage.collapsed) document.execCommand('delete');
-      if (lignes[0]) document.execCommand('insertText', false, lignes[0]);
-      if (lignes.length > 1) insererLignes(this.racine, lignes.slice(1));
-    });
+    // Un texte collé est inséré tel quel (pas de typographie automatique).
+    this.collageEnCours = true;
+    try {
+      this.executer((plage) => {
+        if (!plage.collapsed) document.execCommand('delete');
+        if (lignes[0]) document.execCommand('insertText', false, lignes[0]);
+        if (lignes.length > 1) insererLignes(this.racine, lignes.slice(1));
+      });
+    } finally {
+      this.collageEnCours = false;
+    }
   }
 
   surCopie(e, couper) {
@@ -557,22 +621,12 @@ export class Editeur {
       if (tailles.size > 1) taille = null; // tailles mélangées
     }
     const bloc = blocDe(element, this.racine);
-    // queryCommandState connaît aussi le gras « en attente » (curseur sans
-    // sélection) ; on s'en sert quand la sélection est bien dans la feuille.
-    const commande = (nom, secours) => {
-      if (!enDirect) return secours();
-      try {
-        return document.queryCommandState(nom);
-      } catch {
-        return secours();
-      }
-    };
     return {
       ...base,
       actif: true,
-      gras: commande('bold', () => parseInt(styles.fontWeight, 10) >= 600),
-      italique: commande('italic', () => styles.fontStyle === 'italic'),
-      souligne: commande('underline', () => decoration(element, bloc, 'underline')),
+      gras: aLeFormat(element, 'gras', this.racine),
+      italique: aLeFormat(element, 'italique', this.racine),
+      souligne: aLeFormat(element, 'souligne', this.racine),
       barre: Boolean(element.closest('s, strike')) && this.racine.contains(element.closest('s, strike')),
       taille,
       police: (policeDepuisCss(styles.fontFamily) ?? POLICES[0]).id,
@@ -580,6 +634,7 @@ export class Editeur {
       surlignage: styleExplicite(element, bloc, 'background-color'),
       style: bloc && /^H[123]$/.test(bloc.nodeName) ? bloc.nodeName.toLowerCase() : 'p',
       alignement: nomAlignement(bloc ? getComputedStyle(bloc).textAlign : 'left'),
+      interligne: bloc?.style.lineHeight || null,
       liste: bloc?.nodeName === 'LI' ? bloc.parentNode.nodeName : null,
     };
   }
@@ -611,19 +666,40 @@ function insererLignes(racine, lignes) {
   let precedent = bloc;
   for (const ligne of lignes.slice(0, -1)) {
     const element = document.createElement(baliseMilieu);
+    copierReglagesBloc(bloc, element);
     if (ligne) element.textContent = ligne;
     else element.appendChild(document.createElement('br'));
     precedent.after(element);
     precedent = element;
   }
   const dernier = document.createElement(bloc.nodeName.toLowerCase());
-  if (bloc.style.textAlign) dernier.style.textAlign = bloc.style.textAlign;
+  copierReglagesBloc(bloc, dernier);
   const texteFinal = document.createTextNode(lignes.at(-1));
   dernier.append(texteFinal, queue);
   precedent.after(dernier);
   const curseur = document.createRange();
   curseur.setStart(texteFinal, texteFinal.length);
   selectionner(curseur);
+}
+
+/**
+ * Remplace le contenu d'une plage (bornée par des nœuds de texte d'un même
+ * bloc) par un texte. La plage peut être figée (StaticRange).
+ */
+function remplacerPlage(plage, texte, bloc) {
+  const { startContainer: a, startOffset: da, endContainer: b, endOffset: db } = plage;
+  if (a === b) {
+    a.replaceData(da, db - da, texte);
+    return;
+  }
+  // Les nœuds de texte situés entre les deux bornes sont vidés.
+  const entre = [];
+  const marcheur = document.createTreeWalker(bloc, NodeFilter.SHOW_TEXT);
+  marcheur.currentNode = a;
+  for (let n = marcheur.nextNode(); n && n !== b; n = marcheur.nextNode()) entre.push(n);
+  a.replaceData(da, a.length - da, texte);
+  for (const n of entre) n.data = '';
+  b.deleteData(0, db);
 }
 
 /** Vrai si rien de visible ne précède le curseur dans le bloc. */
@@ -693,13 +769,6 @@ function styleExplicite(element, bloc, propriete) {
     if (valeur) return versHexa(valeur);
   }
   return null;
-}
-
-function decoration(element, bloc, ligne) {
-  for (let n = element; n && n !== bloc?.parentNode; n = n.parentNode) {
-    if (n.nodeType === 1 && getComputedStyle(n).textDecorationLine.includes(ligne)) return true;
-  }
-  return false;
 }
 
 function nomAlignement(valeur) {

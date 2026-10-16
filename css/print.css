@@ -21,6 +21,7 @@ body {
 .lien-evitement,
 .barre-app,
 .cadre-barre-outils,
+.panneau-recherche,
 .barre-etat,
 .zone-messages,
 .palette,
@@ -53,6 +54,13 @@ dialog {
 
 .feuille[data-vide]::before {
   content: none;
+}
+
+/* Les résultats d'une recherche en cours ne s'impriment pas. */
+::highlight(recherche),
+::highlight(recherche-actuelle) {
+  background-color: transparent;
+  color: inherit;
 }
 
 /* Les surlignages et couleurs s'impriment tels quels. */

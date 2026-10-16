@@ -124,6 +124,79 @@ function remonter(span, bloc) {
   }
 }
 
+// --- Gras, italique, souligné ---------------------------------------------------
+// Faits à la main, comme le barré : la commande du navigateur (execCommand)
+// devient extrêmement lente sur un long document (plusieurs minutes pour
+// « tout en gras » sur 300 pages) et ne donne pas le même code partout.
+// L'état est lu dans le document lui-même (balises et styles), sans calcul
+// de style par le navigateur : c'est rapide même sur des milliers de lignes.
+
+const FORMATS = {
+  gras: { balises: new Set(['B', 'STRONG']), balise: 'b', propriete: 'font-weight' },
+  italique: { balises: new Set(['I', 'EM']), balise: 'i', propriete: 'font-style' },
+  souligne: { balises: new Set(['U']), balise: 'u', propriete: 'text-decoration' },
+};
+
+const estGrasse = (valeur) => valeur === 'bold' || valeur === 'bolder' || Number(valeur) >= 600;
+
+/**
+ * Vrai si le texte (ou l'élément) est en gras, en italique ou souligné.
+ * `nom` : 'gras', 'italique' ou 'souligne'.
+ */
+export function aLeFormat(noeud, nom, racine) {
+  const depart = noeud.nodeType === 3 ? noeud.parentNode : noeud;
+  const bloc = blocDe(depart, racine) ?? racine;
+  const { balises, propriete } = FORMATS[nom];
+  for (let n = depart; n && n !== racine; n = n.parentNode) {
+    if (balises.has(n.nodeName)) return true;
+    const valeur = n.style?.getPropertyValue(propriete);
+    if (nom === 'souligne') {
+      // Un soulignement ne peut pas être annulé par un élément intérieur.
+      if (valeur?.includes('underline')) return true;
+    } else if (valeur) {
+      return nom === 'gras' ? estGrasse(valeur) : valeur === 'italic';
+    }
+    if (n === bloc) break;
+  }
+  // Les titres sont en gras par nature (voir redaction.css).
+  return nom === 'gras' && /^H[123]$/.test(bloc.nodeName);
+}
+
+/** Active ou retire le gras, l'italique ou le soulignement d'un nœud de texte. */
+export function appliquerFormat(texte, nom, activer, racine) {
+  const { balises, balise, propriete } = FORMATS[nom];
+  if (activer) {
+    if (aLeFormat(texte, nom, racine)) return;
+    // Une valeur contraire posée sur un <span> (« font-weight: normal ») est retirée.
+    if (nom !== 'souligne') styler(texte, propriete, null, racine);
+    if (aLeFormat(texte, nom, racine)) return;
+    const element = document.createElement(balise);
+    texte.parentNode.insertBefore(element, texte);
+    element.appendChild(texte);
+    return;
+  }
+  const bloc = blocDe(texte, racine) ?? racine;
+  let haut = null;
+  for (let n = texte.parentNode; n && n !== bloc; n = n.parentNode) {
+    if (balises.has(n.nodeName) || (nom === 'souligne' && n.style?.getPropertyValue(propriete).includes('underline'))) haut = n;
+  }
+  if (haut) {
+    const limite = haut.parentNode;
+    isoler(texte, limite);
+    for (let n = texte.parentNode; n && n !== limite; ) {
+      const parent = n.parentNode;
+      if (balises.has(n.nodeName)) deballer(n);
+      else if (nom === 'souligne' && n.style?.getPropertyValue(propriete).includes('underline')) retirerPropriete(n, propriete);
+      n = parent;
+    }
+  }
+  if (nom !== 'souligne') {
+    styler(texte, propriete, null, racine);
+    // Toujours en gras (dans un titre) : on le force en normal.
+    if (aLeFormat(texte, nom, racine)) styler(texte, propriete, 'normal', racine);
+  }
+}
+
 const BALISES_BARRE = new Set(['S', 'STRIKE']);
 
 /** Vrai si le texte est barré (dans une balise <s>). */
@@ -230,6 +303,7 @@ export function nettoyerEnLigne(element) {
 }
 
 // Styles que le navigateur peut ajouter de lui-même et que l'on garde.
+const STYLES_BLOC_PERMIS = new Set(['text-align', 'line-height']);
 const STYLES_EN_LIGNE_PERMIS = new Set([
   'font-size', 'font-family', 'color', 'background-color', 'font-weight', 'font-style',
   'text-decoration', 'text-decoration-line', 'text-decoration-style', 'text-decoration-color', 'text-decoration-thickness',
@@ -266,7 +340,7 @@ export function nettoyerStylesAjoutes(racine) {
     const bloc = estBloc(element) || estListe(element);
     for (const propriete of [...element.style]) {
       const valeur = element.style.getPropertyValue(propriete);
-      const garder = bloc ? propriete === 'text-align' : STYLES_EN_LIGNE_PERMIS.has(propriete);
+      const garder = bloc ? STYLES_BLOC_PERMIS.has(propriete) : STYLES_EN_LIGNE_PERMIS.has(propriete);
       if (!garder) element.style.removeProperty(propriete);
       else if (propriete === 'color' && couleursDuTheme.has(versHexa(valeur))) element.style.removeProperty(propriete);
       else if (propriete === 'background-color' && !versHexa(valeur)) element.style.removeProperty(propriete);

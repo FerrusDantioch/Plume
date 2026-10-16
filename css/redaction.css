@@ -88,6 +88,7 @@
    quand il reste des boutons cachés de ce côté. Un fondu vers la couleur
    de la barre indique que les boutons continuent au-delà du bord. */
 .cadre-barre-outils {
+  grid-area: outils;
   position: relative;
   min-width: 0;
 }
@@ -129,6 +130,72 @@
     width: 20px;
     height: 20px;
     stroke-width: 2.2;
+  }
+}
+
+/* --- Rechercher et remplacer --------------------------------------------- */
+.panneau-recherche {
+  grid-area: recherche;
+  display: grid;
+  gap: 6px;
+  padding: 8px 12px;
+  padding-left: calc(12px + env(safe-area-inset-left, 0px));
+  padding-right: calc(12px + env(safe-area-inset-right, 0px));
+  background: var(--surface);
+  border-bottom: 1px solid var(--trait);
+}
+
+.panneau-recherche[hidden] {
+  display: none;
+}
+
+.ligne-recherche {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 760px;
+}
+
+.ligne-recherche > * {
+  flex: none;
+}
+
+.ligne-recherche .champ {
+  flex: 0 1 26rem;
+  width: 0; /* seul le champ rétrécit sur un écran étroit */
+}
+
+.ligne-recherche .bouton:not(.bouton-icone) {
+  padding: 0 10px;
+}
+
+.resultat-recherche {
+  min-width: 5.5em;
+  padding: 0 4px;
+  color: var(--discret);
+  font-size: 0.85rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.resultat-recherche[data-vide="true"] {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+/* Résultats surlignés dans la feuille (sans modifier le document). */
+::highlight(recherche) {
+  background-color: color-mix(in srgb, var(--accent) 32%, transparent);
+}
+
+::highlight(recherche-actuelle) {
+  background-color: var(--accent);
+  color: var(--accent-texte);
+}
+
+@media (max-width: 700px) {
+  .resultat-recherche {
+    min-width: 0;
   }
 }
 
@@ -229,6 +296,49 @@
 }
 
 .pastille[aria-pressed="true"] .coche {
+  display: block;
+}
+
+/* Liste de choix en colonne (interligne). */
+.liste-choix {
+  display: grid;
+  gap: 4px;
+  min-width: 12rem;
+}
+
+.choix {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--cible);
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--rayon-bouton);
+  background: transparent;
+  color: var(--texte);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color var(--duree), border-color var(--duree);
+}
+
+.choix:hover {
+  background: var(--survol);
+}
+
+.choix[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-doux);
+}
+
+.choix .coche {
+  position: static;
+}
+
+.choix[aria-pressed="true"] .coche {
   display: block;
 }
 

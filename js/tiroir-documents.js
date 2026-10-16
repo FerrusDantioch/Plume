@@ -1,13 +1,14 @@
-// Panneau latéral « Mes documents » : liste, création, ouverture,
-// duplication et suppression (avec confirmation).
+// Panneau latéral « Mes documents » : liste, création, ouverture d'un
+// fichier, duplication, mise à la corbeille ; et panneau « Corbeille » :
+// remettre un document, le supprimer définitivement, vider la corbeille.
 
-import { titreAffiche } from './documents.js';
+import { titreAffiche, joursRestants } from './documents.js';
 import { ouvrirFenetre, demander, afficherMessage } from './ui.js';
 
 const formatDate = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 const formatHeure = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
-/** « Modifié le 15 octobre 2026 à 14:32 ». */
+/** « 15 octobre 2026 à 14:32 ». */
 export function dateLisible(iso) {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
@@ -22,20 +23,39 @@ function extrait(html) {
   return texte.length > 140 ? `${texte.slice(0, 140).trimEnd()}…` : texte;
 }
 
+const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`;
+
 export class TiroirDocuments {
-  constructor({ fenetre, liste, boutonOuvrir, boutonNouveau, documents, editeur }) {
-    this.fenetre = fenetre;
-    this.liste = liste;
-    this.boutonOuvrir = boutonOuvrir;
-    this.boutonNouveau = boutonNouveau;
-    this.documents = documents;
-    this.editeur = editeur;
+  /**
+   * @param {object} options
+   * @param {HTMLDialogElement} options.fenetre  le panneau « Mes documents »
+   * @param {HTMLElement} options.liste
+   * @param {HTMLButtonElement} options.boutonOuvrir  le bouton « Documents » de la barre
+   * @param {HTMLButtonElement} options.boutonNouveau
+   * @param {HTMLButtonElement} options.boutonFichier  « Ouvrir un fichier »
+   * @param {object} options.corbeille  éléments du panneau « Corbeille »
+   * @param {import('./documents.js').Documents} options.documents
+   * @param {import('./editor.js').Editeur} options.editeur
+   * @param {() => Promise<boolean>} options.ouvrirFichier  choisit et ouvre un fichier ; true si un document a été créé
+   */
+  constructor({ fenetre, liste, boutonOuvrir, boutonNouveau, boutonFichier, corbeille, documents, editeur, ouvrirFichier }) {
+    Object.assign(this, { fenetre, liste, boutonOuvrir, boutonNouveau, documents, editeur, corbeille });
 
     boutonOuvrir.addEventListener('click', () => this.ouvrir());
     boutonNouveau.addEventListener('click', async () => {
       await documents.nouveau();
       this.fermerVersLaFeuille();
     });
+    boutonFichier.addEventListener('click', async () => {
+      if (await ouvrirFichier()) this.fermerVersLaFeuille();
+    });
+    corbeille.bouton.addEventListener('click', () => this.ouvrirCorbeille());
+    corbeille.boutonRetour.addEventListener('click', async () => {
+      corbeille.fenetre.close();
+      await this.ouvrir();
+      corbeille.bouton.focus();
+    });
+    corbeille.boutonVider.addEventListener('click', () => this.viderCorbeille());
   }
 
   async ouvrir() {
@@ -46,7 +66,9 @@ export class TiroirDocuments {
     (actuel ?? this.boutonNouveau).focus();
   }
 
+  /** Ferme le panneau ; le focus va dans la feuille (et non sur le bouton « Documents »). */
   fermerVersLaFeuille() {
+    this.fenetre.declencheur = this.editeur.racine;
     this.fenetre.close();
     this.editeur.focaliser();
   }
@@ -54,13 +76,10 @@ export class TiroirDocuments {
   async rafraichir() {
     const documents = await this.documents.lister();
     const elements = documents.map((doc) => this.element(doc));
-    if (elements.length === 0) {
-      const vide = document.createElement('li');
-      vide.className = 'liste-vide';
-      vide.textContent = 'Aucun document.';
-      elements.push(vide);
-    }
+    if (elements.length === 0) elements.push(elementVide('Aucun document.'));
     this.liste.replaceChildren(...elements);
+    const jetes = (await this.documents.listerCorbeille()).length;
+    this.corbeille.libelle.textContent = jetes ? `Corbeille (${jetes})` : 'Corbeille (vide)';
   }
 
   element(doc) {
@@ -74,23 +93,12 @@ export class TiroirDocuments {
     const ouvrir = document.createElement('button');
     ouvrir.type = 'button';
     ouvrir.className = 'document-ouvrir';
-    const nomTitre = document.createElement('span');
-    nomTitre.className = 'document-titre';
-    nomTitre.textContent = titre;
-    const date = document.createElement('span');
-    date.className = 'document-date';
-    date.textContent = `Modifié le ${dateLisible(doc.modifieLe)}`;
-    const apercu = document.createElement('span');
-    apercu.className = 'document-extrait';
-    apercu.textContent = extrait(doc.html) || 'Document vide';
-    ouvrir.append(nomTitre);
-    if (estOuvert) {
-      const etiquette = document.createElement('span');
-      etiquette.className = 'document-etiquette-ouvert';
-      etiquette.textContent = 'Ouvert actuellement';
-      ouvrir.append(etiquette);
-    }
-    ouvrir.append(date, apercu);
+    ouvrir.append(texte('span', 'document-titre', titre));
+    if (estOuvert) ouvrir.append(texte('span', 'document-etiquette-ouvert', 'Ouvert actuellement'));
+    ouvrir.append(
+      texte('span', 'document-date', `Modifié le ${dateLisible(doc.modifieLe)}`),
+      texte('span', 'document-extrait', extrait(doc.html) || 'Document vide'),
+    );
     ouvrir.addEventListener('click', async () => {
       await this.documents.ouvrir(doc.id);
       this.fermerVersLaFeuille();
@@ -100,7 +108,7 @@ export class TiroirDocuments {
     actions.className = 'document-actions';
     actions.append(
       boutonIcone('i-dupliquer', `Dupliquer « ${titre} »`, 'Dupliquer', () => this.dupliquer(doc)),
-      boutonIcone('i-supprimer', `Supprimer « ${titre} »`, 'Supprimer', (e) => this.supprimer(doc, e.currentTarget)),
+      boutonIcone('i-supprimer', `Mettre « ${titre} » à la corbeille`, 'Mettre à la corbeille', () => this.jeter(doc)),
     );
     li.append(ouvrir, actions);
     return li;
@@ -115,31 +123,151 @@ export class TiroirDocuments {
     }
   }
 
-  async supprimer(doc, bouton) {
+  /** Met un document à la corbeille ; le message propose d'annuler. */
+  async jeter(doc) {
+    const titre = titreAffiche(doc);
+    const etaitOuvert = doc.id === this.documents.courant?.id;
+    await this.documents.mettreALaCorbeille(doc.id);
+    await this.rafraichir();
+    this.boutonNouveau.focus();
+    afficherMessage(`« ${titre} » est dans la corbeille.`, {
+      action: 'Annuler',
+      duree: 8000,
+      surAction: async () => {
+        await this.documents.remettre(doc.id);
+        if (etaitOuvert) await this.documents.ouvrir(doc.id); // il redevient le document ouvert
+        if (this.fenetre.open) await this.rafraichir();
+        afficherMessage(`« ${titre} » est de retour dans tes documents.`);
+      },
+    });
+  }
+
+  // --- Corbeille ----------------------------------------------------------------
+
+  async ouvrirCorbeille() {
+    this.fenetre.close();
+    await this.rafraichirCorbeille();
+    ouvrirFenetre(this.corbeille.fenetre, { declencheur: this.boutonOuvrir });
+    this.premierChoixCorbeille().focus();
+  }
+
+  premierChoixCorbeille() {
+    return this.corbeille.liste.querySelector('.document-jete button') ?? this.corbeille.boutonRetour;
+  }
+
+  async rafraichirCorbeille() {
+    const jetes = await this.documents.listerCorbeille();
+    const elements = jetes.map((doc) => this.elementJete(doc));
+    if (elements.length === 0) elements.push(elementVide('La corbeille est vide.'));
+    this.corbeille.liste.replaceChildren(...elements);
+    this.corbeille.boutonVider.hidden = jetes.length === 0;
+  }
+
+  elementJete(doc) {
+    const titre = titreAffiche(doc);
+    const li = document.createElement('li');
+    li.className = 'document-jete';
+    li.dataset.id = doc.id;
+    const infos = document.createElement('div');
+    infos.className = 'document-infos';
+    infos.append(
+      texte('span', 'document-titre', titre),
+      texte('span', 'document-date', `Mis à la corbeille le ${dateLisible(doc.supprimeLe)}`),
+      texte('span', 'document-date', `Suppression définitive dans ${pluriel(joursRestants(doc), 'jour')}`),
+    );
+    const actions = document.createElement('div');
+    actions.className = 'document-actions';
+    actions.append(
+      boutonTexte('i-remettre', 'Remettre', `Remettre « ${titre} » dans mes documents`, () => this.remettre(doc)),
+      boutonTexte('i-supprimer', 'Supprimer définitivement', `Supprimer définitivement « ${titre} »`, (e) =>
+        this.supprimerDefinitivement(doc, e.currentTarget),
+      ),
+    );
+    li.append(infos, actions);
+    return li;
+  }
+
+  async remettre(doc) {
+    await this.documents.remettre(doc.id);
+    await this.rafraichirCorbeille();
+    afficherMessage(`« ${titreAffiche(doc)} » est de retour dans tes documents.`);
+    this.premierChoixCorbeille().focus();
+  }
+
+  async supprimerDefinitivement(doc, bouton) {
     const titre = titreAffiche(doc);
     const confirme = await demander({
-      titre: 'Supprimer le document',
+      titre: 'Supprimer définitivement',
       message: `Supprimer définitivement « ${titre} » ? Cette action est irréversible.`,
-      confirmer: 'Supprimer',
+      confirmer: 'Supprimer définitivement',
       annuler: 'Annuler',
       danger: true,
       declencheur: bouton,
     });
     if (!confirme) return;
-    await this.documents.supprimer(doc.id);
-    await this.rafraichir();
-    afficherMessage(`« ${titre} » a été supprimé.`);
-    this.boutonNouveau.focus();
+    await this.documents.supprimerDefinitivement(doc.id);
+    await this.rafraichirCorbeille();
+    afficherMessage(`« ${titre} » a été supprimé définitivement.`);
+    this.premierChoixCorbeille().focus();
+  }
+
+  async viderCorbeille() {
+    const nombre = (await this.documents.listerCorbeille()).length;
+    if (nombre === 0) return;
+    const confirme = await demander({
+      titre: 'Vider la corbeille',
+      message: `${nombre > 1 ? `Les ${nombre} documents de la corbeille seront supprimés` : 'Le document de la corbeille sera supprimé'} définitivement. Cette action est irréversible.`,
+      confirmer: 'Vider la corbeille',
+      annuler: 'Annuler',
+      danger: true,
+      declencheur: this.corbeille.boutonVider,
+    });
+    if (!confirme) return;
+    await this.documents.viderCorbeille();
+    await this.rafraichirCorbeille();
+    afficherMessage('La corbeille a été vidée.');
+    this.corbeille.boutonRetour.focus();
   }
 }
 
-function boutonIcone(icone, etiquette, infoBulle, action) {
+function texte(balise, classe, contenu) {
+  const element = document.createElement(balise);
+  element.className = classe;
+  element.textContent = contenu;
+  return element;
+}
+
+function elementVide(message) {
+  return texte('li', 'liste-vide', message);
+}
+
+function icone(nom) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'icone');
+  svg.setAttribute('aria-hidden', 'true');
+  const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  use.setAttribute('href', `#${nom}`);
+  svg.append(use);
+  return svg;
+}
+
+function boutonIcone(nomIcone, etiquette, infoBulle, action) {
   const bouton = document.createElement('button');
   bouton.type = 'button';
   bouton.className = 'bouton bouton-icone bouton-discret';
   bouton.setAttribute('aria-label', etiquette);
   bouton.title = infoBulle;
-  bouton.innerHTML = `<svg class="icone" aria-hidden="true"><use href="#${icone}"></use></svg>`;
+  bouton.append(icone(nomIcone));
+  bouton.addEventListener('click', action);
+  return bouton;
+}
+
+function boutonTexte(nomIcone, libelle, etiquette, action) {
+  const bouton = document.createElement('button');
+  bouton.type = 'button';
+  bouton.className = 'bouton';
+  bouton.setAttribute('aria-label', etiquette);
+  bouton.append(icone(nomIcone), libelle);
   bouton.addEventListener('click', action);
   return bouton;
 }

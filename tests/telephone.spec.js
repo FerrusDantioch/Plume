@@ -84,6 +84,60 @@ test('la fenêtre « Exporter » tient dans l’écran, avec de grandes zones à
   }
 });
 
+test('rechercher et remplacer tient dans l’écran, sans défilement horizontal', async ({ page }) => {
+  await remplir(page, '<p>un mot, un autre mot</p>');
+  await page.tap('#bouton-rechercher');
+  await expect(page.locator('#champ-recherche')).toBeFocused();
+  await page.keyboard.type('mot');
+  await expect(page.locator('#resultat-recherche')).toHaveText(/sur 2$/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  const elements = await page.locator('#panneau-recherche').evaluate((panneau) =>
+    [...panneau.querySelectorAll('input, button, .resultat-recherche')].map((e) => {
+      const r = e.getBoundingClientRect();
+      return { nom: e.getAttribute('aria-label') || e.textContent.trim(), gauche: r.left, droite: r.right, largeur: r.width, hauteur: r.height, bouton: e.nodeName === 'BUTTON' };
+    }),
+  );
+  for (const e of elements) {
+    expect(e.gauche, e.nom).toBeGreaterThanOrEqual(0);
+    expect(e.droite, e.nom).toBeLessThanOrEqual(390);
+    if (e.bouton) expect(Math.min(e.largeur, e.hauteur), e.nom).toBeGreaterThanOrEqual(44);
+  }
+  // Les champs restent assez larges pour y écrire.
+  for (const e of elements.filter((x) => !x.bouton && x.nom !== '' && !/sur/.test(x.nom))) expect(e.largeur, e.nom).toBeGreaterThanOrEqual(100);
+  await page.tap('[data-action="tout-remplacer"]');
+  expect(await contenu(page)).toBe('<p>un , un autre </p>');
+});
+
+test('interligne et corbeille au doigt', async ({ page }) => {
+  await remplir(page, '<p>texte</p>');
+  await selectionner(page, 'texte');
+  const bouton = page.locator('#bouton-interligne');
+  await bouton.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(200); // la barre a fini de défiler
+  await bouton.tap();
+  const palette = page.locator('.palette:not([hidden])');
+  await expect(palette).toBeVisible();
+  const boite = await palette.boundingBox();
+  expect(boite.x).toBeGreaterThanOrEqual(0);
+  expect(boite.x + boite.width).toBeLessThanOrEqual(390);
+  await palette.locator('.choix', { hasText: 'Double' }).tap();
+  expect(await contenu(page)).toBe('<p style="line-height: 2;">texte</p>');
+
+  // Corbeille : boutons de 44 px au moins, panneau dans l'écran.
+  await page.tap('#bouton-documents');
+  await page.getByRole('button', { name: 'Mettre « Sans titre » à la corbeille' }).tap();
+  await page.tap('#bouton-corbeille');
+  const corbeille = page.locator('#tiroir-corbeille');
+  await expect(corbeille).toBeVisible();
+  const zone = await corbeille.boundingBox();
+  expect(zone.x + zone.width).toBeLessThanOrEqual(390);
+  for (const b of await corbeille.locator('button:visible').all()) {
+    const r = await b.boundingBox();
+    expect(Math.min(r.width, r.height)).toBeGreaterThanOrEqual(44);
+    expect(r.x + r.width).toBeLessThanOrEqual(390);
+  }
+});
+
 test('tous les boutons font au moins 44 × 44 px', async ({ page }) => {
   const trop_petits = await page.evaluate(() =>
     [...document.querySelectorAll('.barre-app button, .barre-app input, .barre-outils button, .barre-outils select')]

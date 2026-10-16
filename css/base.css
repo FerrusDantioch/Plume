@@ -61,6 +61,11 @@ a {
   outline-offset: 3px;
 }
 
+/* Un élément masqué (attribut hidden) l'est toujours, même un bouton. */
+[hidden] {
+  display: none !important;
+}
+
 .visuellement-cache {
   position: absolute !important;
   width: 1px;
@@ -115,7 +120,40 @@ a {
   width: 100%;
   height: var(--hauteur-visible, 100dvh);
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "entete" "outils" "recherche" "contenu" "etat";
+}
+
+/* Chaque partie a sa place, même quand l'une d'elles est masquée. */
+.application > header {
+  grid-area: entete;
+}
+
+.application > main {
+  grid-area: contenu;
+}
+
+.application > footer {
+  grid-area: etat;
+}
+
+/* Champ de saisie d'une ligne. */
+.champ {
+  min-width: 0;
+  min-height: var(--cible);
+  padding: 0 12px;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-bouton);
+  background: var(--page);
+  color: var(--texte);
+  font: inherit;
+  font-weight: 500;
+}
+
+.champ::placeholder {
+  color: var(--discret);
+  opacity: 1;
 }
 
 /* --- Barre d'application (haut de l'écran) ------------------------------ */
@@ -544,7 +582,7 @@ dialog.tiroir {
   border-width: 0 1px 0 0;
   border-radius: 0 var(--rayon-carte) var(--rayon-carte) 0;
   display: none;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
 }
 
 dialog.tiroir[open] {
@@ -564,6 +602,8 @@ dialog.tiroir[open] {
 }
 
 .tiroir-actions {
+  display: grid;
+  gap: 8px;
   padding: 4px 16px 12px;
 }
 
@@ -571,14 +611,48 @@ dialog.tiroir[open] {
   width: 100%;
 }
 
+/* Bas du panneau : accès à la corbeille, ou « Vider la corbeille ». */
+.tiroir-pied {
+  padding: 8px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--trait);
+}
+
+.tiroir-pied .bouton {
+  width: 100%;
+  justify-content: flex-start;
+}
+
 .liste-documents {
   display: grid;
   align-content: start;
   gap: 8px;
   margin: 0;
-  padding: 4px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  padding: 4px 16px 16px;
   list-style: none;
   overflow-y: auto;
+}
+
+/* Document dans la corbeille : informations, puis deux boutons. */
+.document-jete {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-carte);
+}
+
+.document-jete .document-infos {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.document-jete .document-actions {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0;
 }
 
 .document {

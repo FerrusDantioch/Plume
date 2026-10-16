@@ -1,13 +1,26 @@
-// Gestion des documents : ouverture, création, duplication, suppression,
+// Gestion des documents : ouverture, création, duplication, corbeille,
 // restauration, et enregistrement automatique du document ouvert.
+//
+// Corbeille : un document supprimé reçoit une date « supprimeLe » et
+// disparaît de la liste. Il reste récupérable pendant 30 jours ; ensuite, il
+// est effacé pour de bon au lancement suivant de l'application.
 
 import { nouvelId, demanderStockagePersistant } from './storage.js';
 import { nettoyerHtml } from './sanitize.js';
 
 const DELAI_ENREGISTREMENT = 800; // ms après la dernière frappe
 const DOCUMENT_VIDE = '<p><br></p>';
+export const JOURS_CORBEILLE = 30;
+const DUREE_CORBEILLE = JOURS_CORBEILLE * 24 * 60 * 60 * 1000;
 
 export const titreAffiche = (doc) => doc?.titre?.trim() || 'Sans titre';
+export const estALaCorbeille = (doc) => typeof doc?.supprimeLe === 'string';
+
+/** Nombre de jours avant l'effacement définitif d'un document de la corbeille (au moins 1). */
+export function joursRestants(doc, date = Date.now()) {
+  const reste = Date.parse(doc.supprimeLe) + DUREE_CORBEILLE - date;
+  return Math.max(1, Math.ceil(reste / (24 * 60 * 60 * 1000)));
+}
 
 const maintenant = () => new Date().toISOString();
 
@@ -35,12 +48,14 @@ export class Documents {
     this.persistanceDemandee = false;
   }
 
-  /** Au lancement : rouvre le dernier document (ou en crée un). */
+  /** Au lancement : vide la corbeille des vieux documents, rouvre le dernier document (ou en crée un). */
   async demarrer() {
     await this.recupererSecours();
+    await this.purgerCorbeille();
     const dernier = this.preferences.lire('dernierDocument');
     let doc = typeof dernier === 'string' ? await this.stockage.lire(dernier) : null;
-    if (!doc) doc = (await this.stockage.lister())[0] ?? null;
+    if (estALaCorbeille(doc)) doc = null;
+    if (!doc) doc = (await this.lister())[0] ?? null;
     if (!doc) doc = await this.creer();
     this.afficher(doc);
   }
@@ -56,8 +71,15 @@ export class Documents {
     this.surAffichage(doc);
   }
 
-  lister() {
-    return this.stockage.lister();
+  /** Documents (hors corbeille), du plus récent au plus ancien. */
+  async lister() {
+    return (await this.stockage.lister()).filter((d) => !estALaCorbeille(d));
+  }
+
+  /** Documents de la corbeille, du dernier supprimé au premier. */
+  async listerCorbeille() {
+    const corbeille = (await this.stockage.lister()).filter(estALaCorbeille);
+    return corbeille.sort((a, b) => b.supprimeLe.localeCompare(a.supprimeLe));
   }
 
   // --- Enregistrement automatique ---------------------------------------------
@@ -159,6 +181,16 @@ export class Documents {
     this.afficher(await this.creer());
   }
 
+  /** Crée un document à partir d'un fichier ouvert (voir importer.js) et l'affiche. */
+  async importer({ titre, html }) {
+    await this.enregistrer();
+    const date = maintenant();
+    const doc = { id: nouvelId(), titre: titre.trim().slice(0, 200), html: nettoyerHtml(html), creeLe: date, modifieLe: date };
+    await this.stockage.enregistrer(doc);
+    this.afficher(doc);
+    return doc;
+  }
+
   async ouvrir(id) {
     if (id === this.courant?.id) return;
     await this.enregistrer();
@@ -177,24 +209,54 @@ export class Documents {
     return copie;
   }
 
-  async supprimer(id) {
+  // --- Corbeille ----------------------------------------------------------------
+
+  /** Met un document à la corbeille. Si c'est le document ouvert, un autre s'ouvre. */
+  async mettreALaCorbeille(id) {
+    await this.enregistrer(); // les dernières modifications partent avec lui
+    const doc = await this.stockage.lire(id);
+    if (!doc) return null;
+    const jete = { ...doc, supprimeLe: maintenant() };
+    await this.stockage.enregistrer(jete);
     if (id === this.courant?.id) {
-      // On oublie les changements en attente : le document va disparaître.
-      clearTimeout(this.minuterie);
-      this.modifie = false;
-      await this.file;
-    }
-    await this.stockage.supprimer(id);
-    if (id === this.courant?.id) {
-      const reste = await this.stockage.lister();
+      const reste = await this.lister();
       this.afficher(reste[0] ?? (await this.creer()));
+    }
+    return jete;
+  }
+
+  /** Sort un document de la corbeille : il revient dans la liste. */
+  async remettre(id) {
+    const doc = await this.stockage.lire(id);
+    if (!doc) return null;
+    const remis = { ...doc };
+    delete remis.supprimeLe;
+    await this.stockage.enregistrer(remis);
+    return remis;
+  }
+
+  async supprimerDefinitivement(id) {
+    if (id === this.courant?.id) return; // jamais le document ouvert
+    await this.stockage.supprimer(id);
+  }
+
+  async viderCorbeille() {
+    for (const doc of await this.listerCorbeille()) await this.supprimerDefinitivement(doc.id);
+  }
+
+  /** Efface pour de bon les documents mis à la corbeille il y a plus de 30 jours. */
+  async purgerCorbeille(date = Date.now()) {
+    for (const doc of await this.listerCorbeille()) {
+      const depuis = Date.parse(doc.supprimeLe);
+      if (Number.isNaN(depuis) || date - depuis > DUREE_CORBEILLE) await this.stockage.supprimer(doc.id);
     }
   }
 
   /**
    * Ajoute les documents d'une sauvegarde. Rien n'est jamais remplacé : un
    * document qui a le même identifiant qu'un document existant est ajouté
-   * comme copie, sauf s'il est strictement identique (déjà présent).
+   * comme copie, sauf s'il est strictement identique (déjà présent ; s'il
+   * était à la corbeille, il en sort).
    */
   async restaurer(documents) {
     await this.enregistrer();
@@ -206,7 +268,12 @@ export class Documents {
       const existant = existants.get(doc.id);
       if (existant) {
         if (nettoyerHtml(existant.html) === propre.html && existant.titre === propre.titre) {
-          dejaPresents++;
+          if (estALaCorbeille(existant)) {
+            await this.remettre(existant.id);
+            ajoutes++;
+          } else {
+            dejaPresents++;
+          }
           continue;
         }
         propre.id = nouvelId();

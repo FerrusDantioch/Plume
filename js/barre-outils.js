@@ -3,6 +3,7 @@
 // de la mise en forme sous le curseur.
 
 import { TAILLES, TAILLE_PAR_DEFAUT, POLICES, COULEURS_TEXTE, COULEURS_SURLIGNAGE } from './palettes.js';
+import { INTERLIGNES } from './paragraphes.js';
 
 const COMMANDES = {
   annuler: (e) => e.annuler(),
@@ -53,14 +54,29 @@ export class BarreOutils {
     this.paletteCouleur = this.creerPalette({
       bouton: barre.querySelector('#bouton-couleur'),
       titre: 'Couleur du texte',
-      couleurs: COULEURS_TEXTE,
+      choix: COULEURS_TEXTE,
       choisir: (valeur) => editeur.couleur(valeur),
+      dessiner: (couleur) => pastilleDeCouleur(couleur, 'auto'),
     });
     this.paletteSurlignage = this.creerPalette({
       bouton: barre.querySelector('#bouton-surlignage'),
       titre: 'Surlignage',
-      couleurs: COULEURS_SURLIGNAGE,
+      choix: COULEURS_SURLIGNAGE,
       choisir: (valeur) => editeur.surlignage(valeur),
+      dessiner: (couleur) => pastilleDeCouleur(couleur, 'aucun'),
+    });
+    this.paletteInterligne = this.creerPalette({
+      bouton: barre.querySelector('#bouton-interligne'),
+      titre: 'Interligne',
+      choix: INTERLIGNES,
+      choisir: (valeur) => editeur.interligne(valeur),
+      colonnes: 1,
+      dessiner: (choix) => {
+        const nom = document.createElement('span');
+        nom.textContent = choix.nom;
+        nom.setAttribute('aria-hidden', 'true');
+        return [nom, iconeCoche()];
+      },
     });
 
     document.addEventListener('pointerdown', (e) => {
@@ -118,7 +134,12 @@ export class BarreOutils {
 
   // --- Palettes -----------------------------------------------------------------
 
-  creerPalette({ bouton, titre, couleurs, choisir }) {
+  /**
+   * Petit panneau de choix ouvert par un bouton de la barre : couleurs
+   * (grille de pastilles) ou liste de choix (interligne). `dessiner` crée
+   * le contenu visible de chaque choix.
+   */
+  creerPalette({ bouton, titre, choix, choisir, dessiner, colonnes = 4 }) {
     const element = document.createElement('div');
     element.className = 'palette';
     element.id = `palette-${bouton.id}`;
@@ -129,30 +150,21 @@ export class BarreOutils {
     entete.className = 'etiquette palette-titre';
     entete.textContent = titre;
     const grille = document.createElement('div');
-    grille.className = 'grille-pastilles';
+    grille.className = colonnes === 1 ? 'liste-choix' : 'grille-pastilles';
     grille.setAttribute('role', 'group');
     grille.setAttribute('aria-label', titre);
 
-    const pastilles = couleurs.map((couleur) => {
+    const pastilles = choix.map((un) => {
       const pastille = document.createElement('button');
       pastille.type = 'button';
-      pastille.className = 'pastille';
-      pastille.setAttribute('aria-label', couleur.nom);
+      pastille.className = colonnes === 1 ? 'choix' : 'pastille';
+      pastille.setAttribute('aria-label', un.nom);
       pastille.setAttribute('aria-pressed', 'false');
-      pastille.title = couleur.nom;
-      pastille.dataset.valeur = couleur.valeur ?? '';
-      const echantillon = document.createElement('span');
-      echantillon.className = 'echantillon';
-      if (couleur.valeur) echantillon.style.background = couleur.valeur;
-      else if (couleurs === COULEURS_TEXTE) echantillon.dataset.auto = '';
-      else echantillon.dataset.aucun = '';
-      echantillon.innerHTML = '<svg class="icone coche" aria-hidden="true"><use href="#i-coche"></use></svg>';
-      const nom = document.createElement('span');
-      nom.textContent = couleur.nom;
-      nom.setAttribute('aria-hidden', 'true');
-      pastille.append(echantillon, nom);
+      pastille.title = un.nom;
+      pastille.dataset.valeur = un.valeur ?? '';
+      pastille.append(...dessiner(un));
       pastille.addEventListener('click', () => {
-        choisir(couleur.valeur);
+        choisir(un.valeur);
         this.fermerPalette();
       });
       return pastille;
@@ -170,7 +182,7 @@ export class BarreOutils {
         this.fermerPalette({ rendreFocus: true });
         return;
       }
-      naviguerDansGrille(e, pastilles, 4);
+      naviguerDansGrille(e, pastilles, colonnes);
     });
 
     bouton.setAttribute('aria-controls', element.id);
@@ -237,14 +249,43 @@ export class BarreOutils {
 
     this.afficherCouleur(this.paletteCouleur, etat.couleur ?? null);
     this.afficherCouleur(this.paletteSurlignage, etat.surlignage ?? null);
+    afficherChoix(this.paletteInterligne, etat.interligne ?? null);
   }
 
   afficherCouleur(palette, valeur) {
-    for (const p of palette.pastilles) p.setAttribute('aria-pressed', (p.dataset.valeur || null) === valeur ? 'true' : 'false');
+    afficherChoix(palette, valeur);
     const temoin = palette.bouton.querySelector('.temoin');
     temoin.style.background = valeur ?? '';
     temoin.toggleAttribute('data-aucun', !valeur && palette === this.paletteSurlignage);
   }
+}
+
+/** Marque le choix actuel d'une palette (aria-pressed). */
+function afficherChoix(palette, valeur) {
+  for (const p of palette.pastilles) p.setAttribute('aria-pressed', (p.dataset.valeur || null) === valeur ? 'true' : 'false');
+}
+
+function iconeCoche() {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'icone coche');
+  svg.setAttribute('aria-hidden', 'true');
+  const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  use.setAttribute('href', '#i-coche');
+  svg.append(use);
+  return svg;
+}
+
+/** Contenu d'une pastille de couleur. `sansValeur` : « auto » (texte) ou « aucun » (surlignage). */
+function pastilleDeCouleur(couleur, sansValeur) {
+  const echantillon = document.createElement('span');
+  echantillon.className = 'echantillon';
+  if (couleur.valeur) echantillon.style.background = couleur.valeur;
+  else echantillon.dataset[sansValeur] = '';
+  echantillon.append(iconeCoche());
+  const nom = document.createElement('span');
+  nom.textContent = couleur.nom;
+  nom.setAttribute('aria-hidden', 'true');
+  return [echantillon, nom];
 }
 
 /** Place un panneau sous un bouton, sans dépasser de l'écran. */
