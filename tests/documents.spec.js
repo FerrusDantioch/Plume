@@ -111,7 +111,7 @@ test.describe('Plusieurs documents', () => {
     await page.getByRole('button', { name: 'Mettre « Second » à la corbeille' }).click();
     await expect(titres).toHaveCount(2);
     await expect(titres).not.toContainText(['Second']);
-    await expect(page.locator('.message', { hasText: '« Second » est dans la corbeille.' })).toBeVisible();
+    await expect(page.locator('#annonce-documents .annonce-texte')).toHaveText('« Second » est dans la corbeille.');
     await expect(page.locator('#libelle-corbeille')).toHaveText('Corbeille (1)');
     await expect(page.locator('#bouton-nouveau-document')).toBeFocused();
   });

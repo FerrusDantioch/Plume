@@ -62,9 +62,11 @@ export class Documents {
 
   afficher(doc) {
     clearTimeout(this.minuterie);
+    // D'abord l'affichage : s'il échouait, le document ouvert ne change pas
+    // (sinon la frappe suivante serait enregistrée dans le mauvais document).
+    this.editeur.charger(doc.html);
     this.courant = doc;
     this.modifie = false;
-    this.editeur.charger(doc.html);
     this.champTitre.value = doc.titre;
     this.preferences.ecrire('dernierDocument', doc.id);
     this.indiquer('enregistre', doc.modifieLe);
@@ -187,7 +189,12 @@ export class Documents {
     const date = maintenant();
     const doc = { id: nouvelId(), titre: titre.trim().slice(0, 200), html: nettoyerHtml(html), creeLe: date, modifieLe: date };
     await this.stockage.enregistrer(doc);
-    this.afficher(doc);
+    try {
+      this.afficher(doc);
+    } catch (erreur) {
+      await this.stockage.supprimer(doc.id); // pas de document fantôme
+      throw erreur;
+    }
     return doc;
   }
 
@@ -213,7 +220,10 @@ export class Documents {
 
   /** Met un document à la corbeille. Si c'est le document ouvert, un autre s'ouvre. */
   async mettreALaCorbeille(id) {
-    await this.enregistrer(); // les dernières modifications partent avec lui
+    // Les dernières modifications partent avec lui ; si elles n'ont pas pu
+    // être enregistrées, on ne fait rien (elles seraient perdues).
+    const enregistre = await this.enregistrer();
+    if (!enregistre && id === this.courant?.id) return null;
     const doc = await this.stockage.lire(id);
     if (!doc) return null;
     const jete = { ...doc, supprimeLe: maintenant() };

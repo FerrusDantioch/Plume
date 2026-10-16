@@ -228,7 +228,10 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
 15. **Pas d'export Markdown** pour l'instant : ce format pourrait induire certains
     utilisateurs en erreur.
 16. **Corbeille** : mettre un document à la corbeille ne demande pas de confirmation
-    (il reste récupérable), mais le message affiché propose « Annuler ». La
+    (il reste récupérable), mais le panneau affiche alors « … est dans la
+    corbeille. » avec un bouton « Annuler ». Ce message est dans le panneau
+    lui-même (un message en bas de l'écran serait inaccessible tant que le
+    panneau est ouvert). La
     suppression définitive et « Vider la corbeille » demandent toujours une
     confirmation. La sauvegarde dans un fichier ne contient pas la corbeille.
 17. **Recherche** : les majuscules ne comptent pas (« plume » trouve « Plume »),

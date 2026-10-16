@@ -161,7 +161,12 @@ export class Editeur {
     clearTimeout(this.minuterieFrappe);
     this.debutFrappe = 0;
     const propre = contenuPropre(html);
-    this.racine.replaceChildren(...propre.childNodes);
+    // Les blocs passent par un fragment : les donner un par un à
+    // replaceChildren(...) dépasserait la limite du navigateur au-delà
+    // d'environ 100 000 paragraphes.
+    const fragment = document.createDocumentFragment();
+    while (propre.firstChild) fragment.appendChild(propre.firstChild);
+    this.racine.replaceChildren(fragment);
     this.memoire = null;
     this.historique.reinitialiser();
     this.majIndicationVide();

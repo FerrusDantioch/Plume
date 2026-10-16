@@ -135,3 +135,39 @@ test('les résultats suivent les modifications du document', async ({ page }) =>
   await page.keyboard.press('Control+z');
   await expect(resultat(page)).toHaveText('1 sur 1');
 });
+
+test('Remplacer avance même quand le remplacement contient la recherche', async ({ page }) => {
+  await preparer(page, '<p>paris et paris, puis chat et chat</p>');
+  await page.keyboard.press('Control+f');
+  await page.keyboard.type('paris');
+  await expect(resultat(page)).toHaveText('1 sur 2');
+  await page.fill('#champ-remplacement', 'Paris');
+  await page.click('[data-action="remplacer"]');
+  await expect(resultat(page)).toHaveText('2 sur 2');
+  await page.click('[data-action="remplacer"]');
+  expect(await contenu(page)).toBe('<p>Paris et Paris, puis chat et chat</p>');
+
+  await page.fill('#champ-recherche', 'chat');
+  await page.waitForTimeout(200);
+  await page.fill('#champ-remplacement', 'chats');
+  await page.click('[data-action="remplacer"]');
+  await page.click('[data-action="remplacer"]');
+  expect(await contenu(page)).toBe('<p>Paris et Paris, puis chats et chats</p>');
+});
+
+test('écrire dans le document, panneau ouvert, ne fait pas sauter la page', async ({ page }) => {
+  await preparer(page, '<p>cible en haut</p>' + '<p>ligne</p>'.repeat(150) + '<p>fin</p>');
+  await page.keyboard.press('Control+f');
+  await page.keyboard.type('cible');
+  await expect(resultat(page)).toHaveText('1 sur 1');
+  const zone = page.locator('#zone-ecriture');
+  await zone.evaluate((z) => z.scrollTo({ top: z.scrollHeight }));
+  await page.locator('#feuille p').last().click();
+  await page.keyboard.press('End');
+  const avant = await zone.evaluate((z) => z.scrollTop);
+  expect(avant).toBeGreaterThan(1000);
+  await page.keyboard.type(' suite');
+  await page.waitForTimeout(400); // la recherche a été refaite
+  expect(await zone.evaluate((z) => z.scrollTop)).toBeGreaterThan(avant - 50);
+  await expect(resultat(page)).toHaveText('1 sur 1');
+});

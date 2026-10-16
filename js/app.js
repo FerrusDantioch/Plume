@@ -341,7 +341,18 @@ async function ouvrirUnFichier(champ, documents, declencheur) {
     await informer({ titre: 'Ouverture impossible', message, declencheur });
     return false;
   }
-  const doc = await documents.importer(lu);
+  let doc;
+  try {
+    doc = await documents.importer(lu);
+  } catch (erreur) {
+    console.warn("Création du document impossible :", erreur);
+    await informer({
+      titre: 'Ouverture impossible',
+      message: "Le fichier a été lu, mais le document n'a pas pu être créé. L'espace de stockage de l'appareil est peut-être plein.",
+      declencheur,
+    });
+    return false;
+  }
   const ouvert = `« ${titreAffiche(doc)} » est ouvert dans un nouveau document. Le fichier d'origine n'est pas modifié.`;
   if (lu.remarques.length) await informer({ titre: 'Fichier ouvert', message: `${ouvert} ${lu.remarques.join(' ')}`, declencheur });
   else afficherMessage(ouvert, { duree: 6000 });

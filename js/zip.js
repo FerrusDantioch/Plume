@@ -105,25 +105,45 @@ export function creerZip(fichiers, type = 'application/zip', date = new Date()) 
 /** Erreur de lecture d'archive (le message s'adresse à l'utilisateur). */
 export class ErreurArchive extends Error {}
 
+// Les données compressées sont données au décompresseur par petites tranches :
+// une tranche de 16 Ko ne peut pas dépasser environ 17 Mo une fois
+// décompressée. Ainsi, un fichier piégé (« bombe de décompression ») est
+// arrêté dès qu'il dépasse la taille permise, sans remplir la mémoire.
+const TRANCHE = 16 * 1024;
+
 /** Décompresse des données « deflate » en refusant de dépasser `tailleMax` octets. */
 async function decompresser(donnees, tailleMax) {
   if (typeof DecompressionStream !== 'function') {
     throw new ErreurArchive("Ce navigateur ne sait pas ouvrir ce fichier. Mets-le à jour, puis réessaie.");
   }
-  const flux = new Blob([donnees]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-  const lecteur = flux.getReader();
+  const flux = new DecompressionStream('deflate-raw');
+  const ecrivain = flux.writable.getWriter();
+  const lecteur = flux.readable.getReader();
   const morceaux = [];
   let total = 0;
-  for (;;) {
-    const { done, value } = await lecteur.read();
-    if (done) break;
-    total += value.length;
-    if (total > tailleMax) {
-      await lecteur.cancel();
-      throw new ErreurArchive('Ce fichier est trop volumineux.');
+  let tropGros = false;
+  const lecture = (async () => {
+    for (;;) {
+      const { done, value } = await lecteur.read();
+      if (done) return;
+      total += value.length;
+      if (total > tailleMax) {
+        tropGros = true;
+        await lecteur.cancel();
+        return;
+      }
+      morceaux.push(value);
     }
-    morceaux.push(value);
-  }
+  })();
+  const ecriture = (async () => {
+    for (let i = 0; i < donnees.length && !tropGros; i += TRANCHE) await ecrivain.write(donnees.subarray(i, i + TRANCHE));
+    if (!tropGros) await ecrivain.close();
+  })();
+  // On attend les deux côtés (une erreur de l'un ne doit pas rester sans réponse).
+  const [ecrit, lu] = await Promise.allSettled([ecriture, lecture]);
+  if (tropGros) throw new ErreurArchive('Ce fichier est trop volumineux.');
+  if (lu.status === 'rejected') throw lu.reason;
+  if (ecrit.status === 'rejected') throw ecrit.reason;
   const resultat = new Uint8Array(total);
   let position = 0;
   for (const morceau of morceaux) {

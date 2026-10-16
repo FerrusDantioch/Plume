@@ -9,7 +9,7 @@
 //   défilement jusqu'au résultat fonctionnent).
 // - Remplacer et Tout remplacer s'annulent avec « Annuler » (une seule étape).
 
-import { BALISES_BLOC, INVISIBLE, selectionner } from './selection.js';
+import { BALISES_BLOC, INVISIBLE, pointDe, positionDe, selectionner } from './selection.js';
 
 const MAX_RESULTATS = 10000;
 const DELAI = 150; // ms : nouvelle recherche après une modification du document
@@ -210,14 +210,16 @@ export class Recherche {
   planifier() {
     if (!this.ouvert) return;
     clearTimeout(this.minuterie);
-    this.minuterie = setTimeout(() => this.chercher(), DELAI);
+    // Pas de défilement : la personne écrit ailleurs dans le document.
+    this.minuterie = setTimeout(() => this.chercher({ defiler: false }), DELAI);
   }
 
   /**
    * Recalcule les résultats. Avec `depuisLeCurseur`, le résultat actuel est
-   * le premier qui suit le curseur ; sinon, on garde le même numéro.
+   * le premier qui suit le curseur ; sinon, on garde le même numéro. Avec
+   * `defiler`, la feuille défile jusqu'au résultat actuel.
    */
-  chercher({ depuisLeCurseur = false } = {}) {
+  chercher({ depuisLeCurseur = false, defiler = true } = {}) {
     clearTimeout(this.minuterie);
     if (this.rechercheEnAttente) depuisLeCurseur = true;
     this.rechercheEnAttente = false;
@@ -225,14 +227,18 @@ export class Recherche {
     if (this.plages.length === 0) this.actuel = -1;
     else if (depuisLeCurseur || this.actuel < 0) this.actuel = this.premierApresLeCurseur();
     else this.actuel = Math.min(this.actuel, this.plages.length - 1);
-    this.afficher();
+    this.afficher({ defiler });
   }
 
   premierApresLeCurseur() {
     const curseur = this.editeur.memoire;
     if (!curseur || !this.editeur.racine.contains(curseur.startContainer)) return 0;
-    // Premier résultat qui commence dans la sélection ou après elle.
-    const i = this.plages.findIndex((p) => curseur.comparePoint(p.startContainer, p.startOffset) >= 0);
+    return this.premierApres(curseur);
+  }
+
+  /** Numéro du premier résultat qui commence dans la plage `repere` ou après elle (en boucle). */
+  premierApres(repere) {
+    const i = this.plages.findIndex((p) => repere.comparePoint(p.startContainer, p.startOffset) >= 0);
     return i < 0 ? 0 : i;
   }
 
@@ -252,14 +258,21 @@ export class Recherche {
     this.chercher(); // résultats à jour (le document a pu changer)
     const plage = this.plages[this.actuel];
     if (!plage) return;
-    const numero = this.actuel;
-    this.editeur.remplacerTexte([plage], this.remplacement.value);
-    this.chercher();
-    // Le résultat remplacé a disparu : le même numéro désigne le suivant.
-    if (this.plages.length) {
-      this.actuel = numero % this.plages.length;
-      this.afficher();
+    const racine = this.editeur.racine;
+    const texte = this.remplacement.value;
+    const fin = positionDe(racine, plage.startContainer, plage.startOffset) + texte.length;
+    this.editeur.remplacerTexte([plage], texte);
+    this.plages = trouver(racine, this.champ.value);
+    if (this.plages.length === 0) this.actuel = -1;
+    else {
+      // Résultat suivant : le premier APRÈS le texte inséré (qui peut lui-même
+      // contenir la recherche, par exemple « paris » remplacé par « Paris »).
+      const point = pointDe(racine, fin);
+      const repere = document.createRange();
+      repere.setStart(point.noeud, point.decalage);
+      this.actuel = this.premierApres(repere);
     }
+    this.afficher();
   }
 
   toutRemplacer() {
@@ -273,7 +286,7 @@ export class Recherche {
 
   // --- Affichage ----------------------------------------------------------------
 
-  afficher() {
+  afficher({ defiler = true } = {}) {
     const n = this.plages.length;
     if (!this.champ.value) this.resultat.textContent = '';
     else if (n === 0) this.resultat.textContent = 'Aucun résultat';
@@ -284,7 +297,7 @@ export class Recherche {
     this.resultat.dataset.vide = String(Boolean(this.champ.value) && n === 0);
     this.surligner();
     const plage = this.plages[this.actuel];
-    if (plage) this.montrer(plage);
+    if (plage && defiler) this.montrer(plage);
   }
 
   surligner() {

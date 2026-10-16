@@ -88,7 +88,7 @@ test('mettre à la corbeille, remettre, supprimer définitivement, vider', async
 
   // Remettre « Deuxième » : il revient dans la liste, avec son texte.
   await corbeille.getByRole('button', { name: 'Remettre « Deuxième » dans mes documents' }).click();
-  await expect(page.locator('.message', { hasText: '« Deuxième » est de retour dans tes documents.' })).toBeVisible();
+  await expect(page.locator('#annonce-corbeille .annonce-texte')).toHaveText('« Deuxième » est de retour dans tes documents.');
   await expect(corbeille.locator('.document-jete .document-titre')).toHaveText(['Premier']);
   await page.click('#bouton-retour-documents');
   await expect(page.locator('#tiroir-documents')).toBeVisible();
@@ -125,7 +125,7 @@ test('mettre à la corbeille, remettre, supprimer définitivement, vider', async
   expect((await lireDocuments(page)).map((d) => d.titre)).toEqual(['Deuxième']);
 });
 
-test('« Annuler » dans le message remet le document, et le rouvre s’il était ouvert', async ({ page }) => {
+test('« Annuler » dans le panneau remet le document, et le rouvre s’il était ouvert', async ({ page }) => {
   await ouvrir(page);
   await page.fill('#titre-document', 'Autre');
   await attendreEnregistrement(page);
@@ -133,9 +133,18 @@ test('« Annuler » dans le message remet le document, et le rouvre s’il étai
   await page.click('#bouton-documents');
   await page.getByRole('button', { name: 'Mettre « Important » à la corbeille' }).click();
   await expect(page.locator('#titre-document')).toHaveValue('Autre');
-  await page.keyboard.press('Escape');
-  await page.locator('.message', { hasText: '« Important » est dans la corbeille.' }).getByRole('button', { name: 'Annuler' }).click();
-  await expect(page.locator('.message', { hasText: '« Important » est de retour dans tes documents.' })).toBeVisible();
+  const annonce = page.locator('#annonce-documents');
+  await expect(annonce).toHaveAttribute('role', 'status');
+  await expect(annonce.locator('.annonce-texte')).toHaveText('« Important » est dans la corbeille.');
+  // Au clavier : le bouton « Annuler » de l'annonce est atteignable avec Tab.
+  await page.locator('#bouton-nouveau-document').focus();
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await expect(annonce.getByRole('button', { name: 'Annuler : remettre « Important » dans mes documents' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(annonce.locator('.annonce-texte')).toHaveText('« Important » est de retour dans tes documents.');
+  await expect(annonce.getByRole('button')).toBeHidden();
+  await expect(page.locator('#liste-documents [aria-current="true"] .document-ouvrir')).toBeFocused();
   await expect(page.locator('#titre-document')).toHaveValue('Important');
   expect(await contenu(page)).toBe('<p>Ne pas perdre</p>');
 });

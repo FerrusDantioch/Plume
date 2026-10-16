@@ -386,7 +386,7 @@ function cibleDeRelation(relsXml, type, dossier) {
  * @returns {Promise<{html: string, remarques: {images: number, tableaux: number, notes: number}}>}
  */
 export async function lireDocx(octets) {
-  const archive = lireZip(octets);
+  const archive = lireZip(octets, TAILLE_MAX_XML);
   const relations = lireXml(await archive.lire('_rels/.rels'));
   const chemin = cibleDeRelation(relations, 'officeDocument', '') ?? 'word/document.xml';
   const documentXml = lireXml(await archive.lire(chemin));

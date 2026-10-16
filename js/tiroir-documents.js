@@ -3,7 +3,7 @@
 // remettre un document, le supprimer définitivement, vider la corbeille.
 
 import { titreAffiche, joursRestants } from './documents.js';
-import { ouvrirFenetre, demander, afficherMessage } from './ui.js';
+import { ouvrirFenetre, demander } from './ui.js';
 
 const formatDate = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 const formatHeure = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -25,6 +25,39 @@ function extrait(html) {
 
 const pluriel = (n, mot) => `${n} ${mot}${n > 1 ? 's' : ''}`;
 
+/**
+ * Annonce affichée DANS un panneau (un message en bas de l'écran serait
+ * inaccessible tant que le panneau est ouvert). Elle peut proposer une action.
+ */
+function creerAnnonce(element) {
+  const texte = element.querySelector('.annonce-texte');
+  const bouton = element.querySelector('button');
+  let action = null;
+  const effacer = () => {
+    texte.textContent = '';
+    bouton.hidden = true;
+    action = null;
+  };
+  bouton.addEventListener('click', () => {
+    const faire = action;
+    effacer();
+    faire?.();
+  });
+  return {
+    effacer,
+    /** `bouton` : { libelle, etiquette, faire } pour proposer une action. */
+    montrer(message, choix = null) {
+      texte.textContent = message;
+      bouton.hidden = !choix;
+      action = choix?.faire ?? null;
+      if (choix) {
+        bouton.textContent = choix.libelle;
+        bouton.setAttribute('aria-label', choix.etiquette);
+      }
+    },
+  };
+}
+
 export class TiroirDocuments {
   /**
    * @param {object} options
@@ -40,6 +73,10 @@ export class TiroirDocuments {
    */
   constructor({ fenetre, liste, boutonOuvrir, boutonNouveau, boutonFichier, corbeille, documents, editeur, ouvrirFichier }) {
     Object.assign(this, { fenetre, liste, boutonOuvrir, boutonNouveau, documents, editeur, corbeille });
+    this.annonce = creerAnnonce(fenetre.querySelector('.annonce'));
+    this.annonceCorbeille = creerAnnonce(corbeille.fenetre.querySelector('.annonce'));
+    fenetre.addEventListener('close', () => this.annonce.effacer());
+    corbeille.fenetre.addEventListener('close', () => this.annonceCorbeille.effacer());
 
     boutonOuvrir.addEventListener('click', () => this.ouvrir());
     boutonNouveau.addEventListener('click', async () => {
@@ -118,26 +155,36 @@ export class TiroirDocuments {
     const copie = await this.documents.dupliquer(doc.id);
     await this.rafraichir();
     if (copie) {
-      afficherMessage(`Copie créée : « ${titreAffiche(copie)} ».`);
+      this.annonce.montrer(`Copie créée : « ${titreAffiche(copie)} ».`);
       this.liste.querySelector(`[data-id="${CSS.escape(copie.id)}"] .document-ouvrir`)?.focus();
     }
   }
 
-  /** Met un document à la corbeille ; le message propose d'annuler. */
+  /** Met un document à la corbeille ; l'annonce propose d'annuler. */
   async jeter(doc) {
     const titre = titreAffiche(doc);
     const etaitOuvert = doc.id === this.documents.courant?.id;
-    await this.documents.mettreALaCorbeille(doc.id);
+    const jete = await this.documents.mettreALaCorbeille(doc.id);
     await this.rafraichir();
+    if (!jete) {
+      this.annonce.montrer(`« ${titre} » n'a pas pu être mis à la corbeille.`);
+      return;
+    }
     this.boutonNouveau.focus();
-    afficherMessage(`« ${titre} » est dans la corbeille.`, {
-      action: 'Annuler',
-      duree: 8000,
-      surAction: async () => {
-        await this.documents.remettre(doc.id);
+    this.annonce.montrer(`« ${titre} » est dans la corbeille.`, {
+      libelle: 'Annuler',
+      etiquette: `Annuler : remettre « ${titre} » dans mes documents`,
+      faire: async () => {
+        const remis = await this.documents.remettre(doc.id);
+        if (!remis) {
+          this.annonce.montrer(`« ${titre} » n'a pas pu être remis : il a été supprimé définitivement.`);
+          this.boutonNouveau.focus();
+          return;
+        }
         if (etaitOuvert) await this.documents.ouvrir(doc.id); // il redevient le document ouvert
-        if (this.fenetre.open) await this.rafraichir();
-        afficherMessage(`« ${titre} » est de retour dans tes documents.`);
+        await this.rafraichir();
+        this.annonce.montrer(`« ${titre} » est de retour dans tes documents.`);
+        (this.liste.querySelector(`[data-id="${CSS.escape(doc.id)}"] .document-ouvrir`) ?? this.boutonNouveau).focus();
       },
     });
   }
@@ -188,9 +235,11 @@ export class TiroirDocuments {
   }
 
   async remettre(doc) {
-    await this.documents.remettre(doc.id);
+    const remis = await this.documents.remettre(doc.id);
     await this.rafraichirCorbeille();
-    afficherMessage(`« ${titreAffiche(doc)} » est de retour dans tes documents.`);
+    this.annonceCorbeille.montrer(
+      remis ? `« ${titreAffiche(doc)} » est de retour dans tes documents.` : `« ${titreAffiche(doc)} » n'a pas pu être remis.`,
+    );
     this.premierChoixCorbeille().focus();
   }
 
@@ -207,7 +256,7 @@ export class TiroirDocuments {
     if (!confirme) return;
     await this.documents.supprimerDefinitivement(doc.id);
     await this.rafraichirCorbeille();
-    afficherMessage(`« ${titre} » a été supprimé définitivement.`);
+    this.annonceCorbeille.montrer(`« ${titre} » a été supprimé définitivement.`);
     this.premierChoixCorbeille().focus();
   }
 
@@ -225,7 +274,7 @@ export class TiroirDocuments {
     if (!confirme) return;
     await this.documents.viderCorbeille();
     await this.rafraichirCorbeille();
-    afficherMessage('La corbeille a été vidée.');
+    this.annonceCorbeille.montrer('La corbeille a été vidée.');
     this.corbeille.boutonRetour.focus();
   }
 }

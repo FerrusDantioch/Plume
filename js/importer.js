@@ -4,7 +4,8 @@
 import { lireDocx } from './import-docx.js';
 import { ErreurArchive } from './zip.js';
 
-const TAILLE_MAX = 50 * 1024 * 1024; // 50 Mo
+const TAILLE_MAX = 50 * 1024 * 1024; // 50 Mo de fichier
+const TAILLE_MAX_DOCUMENT = 50 * 1024 * 1024; // 50 Mo de code HTML (comme dans storage.js)
 
 /** Erreur dont le message s'adresse à l'utilisateur. */
 export class ErreurOuverture extends Error {}
@@ -81,13 +82,20 @@ export async function lireFichier(fichier) {
   if (fichier.size > TAILLE_MAX) throw new ErreurOuverture('Ce fichier est trop volumineux (plus de 50 Mo).');
   const octets = new Uint8Array(await fichier.arrayBuffer());
   const titre = titreDuFichier(fichier.name);
-  if (type === 'txt') return { titre, html: texteEnHtml(decoderTexte(octets)), remarques: [] };
-  try {
-    const { html, remarques } = await lireDocx(octets);
-    return { titre, html, remarques: remarquesLisibles(remarques) };
-  } catch (erreur) {
-    if (erreur instanceof ErreurArchive) throw new ErreurOuverture(erreur.message);
-    console.warn('Lecture du fichier Word impossible :', erreur);
-    throw new ErreurOuverture("Ce fichier Word n'a pas pu être lu. Il est peut-être abîmé.");
+  let lu;
+  if (type === 'txt') {
+    lu = { titre, html: texteEnHtml(decoderTexte(octets)), remarques: [] };
+  } else {
+    try {
+      const { html, remarques } = await lireDocx(octets);
+      lu = { titre, html, remarques: remarquesLisibles(remarques) };
+    } catch (erreur) {
+      if (erreur instanceof ErreurArchive) throw new ErreurOuverture(erreur.message);
+      console.warn('Lecture du fichier Word impossible :', erreur);
+      throw new ErreurOuverture("Ce fichier Word n'a pas pu être lu. Il est peut-être abîmé.");
+    }
   }
+  // Même limite que pour une sauvegarde : un document plus gros ne pourrait pas être restauré.
+  if (lu.html.length > TAILLE_MAX_DOCUMENT) throw new ErreurOuverture('Ce fichier contient trop de texte pour un seul document.');
+  return lu;
 }
