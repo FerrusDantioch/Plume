@@ -384,5 +384,20 @@ L'analyse du PDF demande aussi Python 3 avec `pdfplumber` et `pypdfium2`
 
 ---
 
+## 12. Licence
+
+Distribué sous licence **[PolyForm Noncommercial 1.0.0](LICENSE)** (texte
+officiel en anglais, suivi d'une traduction française à titre indicatif).
+
+Ce code peut être utilisé, modifié et partagé librement, à condition que ce ne
+soit pas dans un but commercial et que le fichier de licence l'accompagne
+toujours. Toute utilisation commerciale nécessite l'accord de l'auteur. Le
+logiciel est fourni « en l'état », sans aucune garantie.
+
+Les polices (dossier `fonts/`) gardent leur propre licence : voir les fichiers
+`fonts/LICENCE-*.txt`.
+
+---
+
 Application réalisée par Ferrus Dantioch, avec l'aide de Claude (Anthropic).
 Contact : ferrusdantioch@protonmail.com
