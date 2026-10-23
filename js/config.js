@@ -13,11 +13,11 @@ self.CONFIG_APP = Object.freeze({
   nom: 'Plume',
 
   // Numéro de version : à augmenter à chaque publication (ex. 1.0.1).
-  version: '1.1.1',
+  version: '1.1.2',
 
   // Auteur affiché et contact.
   auteur: 'Ferrus Dantioch',
-  contact: 'ferrusdantioch@protonmail.com',
+  contact: 'omni-systeme.choking513@passmail.net',
   siteOmni: 'https://ferrusdantioch.github.io/omni-systeme/',
 
   // Identifiant technique du stockage (base de données, préférences, cache).
