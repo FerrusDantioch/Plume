@@ -13,7 +13,7 @@ self.CONFIG_APP = Object.freeze({
   nom: 'Plume',
 
   // Numéro de version : à augmenter à chaque publication (ex. 1.0.1).
-  version: '1.1.2',
+  version: '1.1.3',
 
   // Auteur affiché et contact.
   auteur: 'Ferrus Dantioch',
