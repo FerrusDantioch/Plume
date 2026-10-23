@@ -17,8 +17,8 @@ test('fenêtre « À propos » : contenu exact, Échap et bouton « Fermer », r
   await expect(fenetre).toContainText('Application réalisée par Ferrus Dantioch, avec l\'aide de Claude (Anthropic).');
   await expect(fenetre).toContainText('Tes documents restent sur cet appareil. Aucun compte, aucune donnée envoyée.');
   const contact = fenetre.locator('a.contact');
-  await expect(contact).toHaveAttribute('href', 'mailto:ferrusdantioch@protonmail.com');
-  await expect(contact).toHaveText('ferrusdantioch@protonmail.com');
+  await expect(contact).toHaveAttribute('href', 'mailto:omni-systeme.choking513@passmail.net');
+  await expect(contact).toHaveText('omni-systeme.choking513@passmail.net');
   const lien = fenetre.locator('a.lien-omni');
   await expect(lien).toHaveAttribute('href', 'https://ferrusdantioch.github.io/omni-systeme/');
   await expect(lien).toHaveAttribute('target', '_blank');
