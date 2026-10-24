@@ -252,10 +252,10 @@ export function lireSauvegarde(texte, config) {
     throw refus("Ce fichier n'est pas une sauvegarde : son contenu n'est pas lisible.");
   }
   if (!donnees || typeof donnees !== 'object' || Array.isArray(donnees)) throw refus("Ce fichier n'est pas une sauvegarde valide.");
-  if (donnees.format !== `${config.idStockage}-sauvegarde`) throw refus(`Ce fichier n'est pas une sauvegarde de ${config.nom}.`);
+  if (donnees.format !== `${config.idStockage}-sauvegarde`) throw refus(`Ce fichier n'est pas une sauvegarde d'${config.nom}.`);
   if (typeof donnees.version !== 'number') throw refus("Ce fichier n'est pas une sauvegarde valide : sa version est absente.");
   if (donnees.version > VERSION_SAUVEGARDE) {
-    throw refus(`Cette sauvegarde vient d'une version plus récente de ${config.nom}. Mets l'application à jour, puis réessaie.`);
+    throw refus(`Cette sauvegarde vient d'une version plus récente d'${config.nom}. Mets l'application à jour, puis réessaie.`);
   }
   if (!Array.isArray(donnees.documents)) throw refus("Ce fichier n'est pas une sauvegarde valide : la liste des documents est absente.");
   if (donnees.documents.length === 0) throw refus('Cette sauvegarde ne contient aucun document.');

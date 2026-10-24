@@ -99,13 +99,13 @@ test('un fichier invalide est refusé avec un message clair', async ({ page }) =
   await ouvrir(page);
   const cas = [
     ['pas du json', "Ce fichier n'est pas une sauvegarde : son contenu n'est pas lisible."],
-    [JSON.stringify({ format: 'autre-chose', version: 1, documents: [] }), "Ce fichier n'est pas une sauvegarde de Plume."],
+    [JSON.stringify({ format: 'autre-chose', version: 1, documents: [] }), "Ce fichier n'est pas une sauvegarde d'Omni-Texte."],
     [JSON.stringify({ format: 'plume-sauvegarde', version: 1, documents: [] }), 'Cette sauvegarde ne contient aucun document.'],
     [
       JSON.stringify({ format: 'plume-sauvegarde', version: 1, documents: [{ id: 'a', titre: 'x', html: 3, creeLe: '2026-01-01', modifieLe: '2026-01-01' }] }),
       "Le document n° 1 de la sauvegarde est invalide (contenu manquant). Rien n'a été restauré.",
     ],
-    [JSON.stringify({ format: 'plume-sauvegarde', version: 9, documents: [] }), "Cette sauvegarde vient d'une version plus récente de Plume. Mets l'application à jour, puis réessaie."],
+    [JSON.stringify({ format: 'plume-sauvegarde', version: 9, documents: [] }), "Cette sauvegarde vient d'une version plus récente d'Omni-Texte. Mets l'application à jour, puis réessaie."],
   ];
   for (const [texte, message] of cas) {
     await restaurer(page, 'fichier.json', texte);

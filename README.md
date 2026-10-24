@@ -1,6 +1,6 @@
-# Plume — traitement de texte
+# Omni-Texte — traitement de texte
 
-Plume est une application de traitement de texte qui s'installe sur un
+Omni-Texte est une application de traitement de texte qui s'installe sur un
 ordinateur ou un téléphone Android, comme une application classique.
 
 - Aucun compte, aucun serveur : les documents restent sur l'appareil.
@@ -8,7 +8,7 @@ ordinateur ou un téléphone Android, comme une application classique.
 - Ordinateur (Chrome, Edge, Firefox) et Android (Chrome, Brave), à la souris, au clavier et au doigt.
 - Première application de la « Suite Bureautique » de l'Omni-système.
 
-Adresse : `https://ferrusdantioch.github.io/Plume/` (dépôt GitHub `FerrusDantioch/Plume`).
+Adresse : `https://ferrusdantioch.github.io/omni-texte/` (dépôt GitHub `FerrusDantioch/omni-texte`).
 
 ---
 
@@ -59,47 +59,47 @@ web local. Il est fourni (`outils/serveur.mjs`) et n'a besoin que de Node.js.
 
 **À chaque essai (Windows)**
 
-1. Ouvre l'Explorateur de fichiers et va dans le dossier `Plume`.
+1. Ouvre l'Explorateur de fichiers et va dans le dossier `omni-texte`.
 2. Clique dans la barre d'adresse en haut de la fenêtre (là où le chemin du dossier est écrit).
 3. Efface ce qui est écrit, tape `cmd`, puis appuie sur Entrée. Une fenêtre noire s'ouvre.
 4. Dans cette fenêtre, tape : `node outils/serveur.mjs` puis appuie sur Entrée.
-5. Le message « Application disponible sur http://localhost:8000/plume/ » s'affiche.
-6. Ouvre Chrome et va à l'adresse `http://localhost:8000/plume/`.
+5. Le message « Application disponible sur http://localhost:8000/omni-texte/ » s'affiche.
+6. Ouvre Chrome et va à l'adresse `http://localhost:8000/omni-texte/`.
 7. Pour arrêter : clique dans la fenêtre noire et appuie sur Ctrl+C, puis ferme-la.
 
 **Sur Mac** : ouvre l'application « Terminal », tape `cd ` (avec un espace),
-glisse le dossier `Plume` dans la fenêtre, appuie sur Entrée,
+glisse le dossier `omni-texte` dans la fenêtre, appuie sur Entrée,
 puis suis les étapes 4 à 7 ci-dessus.
 
 ---
 
 ## 3. Publier l'application sur GitHub Pages
 
-Le nom du dépôt donne l'adresse : le dépôt `Plume` sera publié à
-`https://ferrusdantioch.github.io/Plume/`. Tous les chemins de l'application
+Le nom du dépôt donne l'adresse : le dépôt `omni-texte` sera publié à
+`https://ferrusdantioch.github.io/omni-texte/`. Tous les chemins de l'application
 sont relatifs : elle fonctionne dans ce sous-dossier.
 
 **Méthode simple, par le site de GitHub (sans rien installer)**
 
 1. Connecte-toi sur <https://github.com> avec le compte `FerrusDantioch`.
 2. Clique sur le bouton « + » en haut à droite, puis sur « New repository ».
-3. Dans « Repository name », tape `Plume`.
+3. Dans « Repository name », tape `omni-texte`.
 4. Choisis « Public ». Ne coche aucune autre case. Clique sur « Create repository ».
 5. Sur la page qui s'affiche, clique sur le lien « uploading an existing file ».
-6. Ouvre le dossier `Plume` sur ton ordinateur et sélectionne tout son
+6. Ouvre le dossier `omni-texte` sur ton ordinateur et sélectionne tout son
    contenu, **sauf le dossier `tests`** (il ne sert qu'aux vérifications).
    Glisse cette sélection dans la page de GitHub.
 7. Attends la fin du chargement, puis clique sur le bouton vert « Commit changes ».
 8. Clique sur l'onglet « Settings » du dépôt, puis sur « Pages » dans la colonne de gauche.
 9. Sous « Branch », choisis `main`, puis `/ (root)`, puis clique sur « Save ».
-10. Attends une à deux minutes, puis ouvre `https://ferrusdantioch.github.io/Plume/`.
+10. Attends une à deux minutes, puis ouvre `https://ferrusdantioch.github.io/omni-texte/`.
 
 **Autre méthode, avec l'application GitHub Desktop** : elle garde l'historique
 des modifications (le dossier contient déjà un dépôt git local).
 
 1. Installe GitHub Desktop depuis <https://desktop.github.com> et connecte-toi.
-2. Menu « File », puis « Add local repository… », puis choisis le dossier `Plume`.
-3. Clique sur « Publish repository ». Nom : `Plume`. Décoche « Keep this code private ». Clique sur « Publish repository ».
+2. Menu « File », puis « Add local repository… », puis choisis le dossier `omni-texte`.
+3. Clique sur « Publish repository ». Nom : `omni-texte`. Décoche « Keep this code private ». Clique sur « Publish repository ».
 4. Fais ensuite les étapes 8 à 10 de la méthode simple.
 
 **Publier une mise à jour**
@@ -116,12 +116,12 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
 
 ## 4. Changer le nom ou la version
 
-- **Nom** : dans `js/config.js`, modifie la ligne `nom: 'Plume',`. Puis, dans
+- **Nom** : dans `js/config.js`, modifie la ligne `nom: 'Omni-Texte',`. Puis, dans
   `manifest.webmanifest`, modifie les lignes `"name"` et `"short_name"`.
   Le manifeste est un fichier de données (JSON) : il ne peut pas lire `config.js`,
   c'est pourquoi le nom y est recopié. Un test automatique vérifie que les deux
   correspondent. Le titre de la page et la fenêtre « À propos » suivent `config.js`.
-- **Version** : dans `js/config.js`, ligne `version: '1.1.3',` (version actuelle).
+- **Version** : dans `js/config.js`, ligne `version: '1.1.4',` (version actuelle).
 - **Ne change jamais** `idStockage: 'plume'` : c'est le nom de la base de données ;
   le changer rendrait les documents existants invisibles.
 - **Icônes** : elles sont créées par `outils/creer-icones.py` (Python et la
@@ -149,11 +149,11 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
 
 ## 5 bis. Échanger des documents avec Word ou Google Docs
 
-### Ouvrir dans Word ou Google Docs un document de Plume
+### Ouvrir dans Word ou Google Docs un document d'Omni-Texte
 
 **Sur Android**
 
-1. Dans Plume, touche « Exporter », puis « Word (.docx) ».
+1. Dans Omni-Texte, touche « Exporter », puis « Word (.docx) ».
 2. Ouvre l'application « Fichiers » (ou « Mes fichiers »), puis le dossier « Téléchargements ».
 3. Touche le fichier. Choisis « Docs » (Google Docs) ou « Word ».
 
@@ -164,12 +164,12 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
   « Importer un fichier », choisis le fichier ; ensuite, clique dessus avec le
   bouton droit, puis « Ouvrir avec » et « Google Docs ».
 
-### Ouvrir dans Plume un document de Word ou de Google Docs
+### Ouvrir dans Omni-Texte un document de Word ou de Google Docs
 
 1. Si le document est dans Google Docs : ouvre-le, puis menu « Fichier »,
    « Télécharger », « Microsoft Word (.docx) ». Le fichier arrive dans « Téléchargements ».
-2. Dans Plume, touche « Documents », puis « Ouvrir un fichier ».
-3. Choisis le fichier (.docx ou .txt). Il devient un nouveau document de Plume ;
+2. Dans Omni-Texte, touche « Documents », puis « Ouvrir un fichier ».
+3. Choisis le fichier (.docx ou .txt). Il devient un nouveau document d'Omni-Texte ;
    le fichier d'origine n'est pas modifié.
 4. Si quelque chose n'a pas pu être repris (images, tableaux), un message le dit.
 
@@ -201,9 +201,10 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
    page (évite les déplacements accidentels). Un texte déposé depuis une autre
    application est inséré en texte brut.
 8. **Applications voisines** : toutes les applications de `ferrusdantioch.github.io`
-   partagent le même espace de stockage. Toutes les clés de Plume commencent donc
-   par `plume.`, et son service worker ne supprime que les caches commençant par
-   `plume-`. Conseil pour les prochaines applications : suivre la même règle.
+   partagent le même espace de stockage. Toutes les clés d'Omni-Texte commencent donc
+   par `plume.` (son ancien nom, gardé exprès pour ne rien perdre), et son
+   service worker ne supprime que les caches commençant par `plume-`.
+   Conseil pour les prochaines applications : suivre la même règle.
 9. **Sécurité** : une politique de sécurité (`Content-Security-Policy`) interdit
    tout code extérieur. Le petit script du thème, dans `index.html`, est autorisé
    par son empreinte ; un test signale si elle n'est plus à jour.
@@ -234,19 +235,19 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
     panneau est ouvert). La
     suppression définitive et « Vider la corbeille » demandent toujours une
     confirmation. La sauvegarde dans un fichier ne contient pas la corbeille.
-17. **Recherche** : les majuscules ne comptent pas (« plume » trouve « Plume »),
+17. **Recherche** : les majuscules ne comptent pas (« texte » trouve « Texte »),
     les accents comptent (« a » ne trouve pas « à »). L'apostrophe droite trouve
     aussi l'apostrophe typographique, et une espace trouve aussi les espaces
-    insécables. Ctrl+F ouvre la recherche de Plume à la place de celle du navigateur.
+    insécables. Ctrl+F ouvre la recherche d'Omni-Texte à la place de celle du navigateur.
     Les résultats sont surlignés sans modifier le document. « Tout remplacer »
     s'annule en une seule fois avec « Annuler ».
 18. **Ouvrir un fichier** : sont repris le texte, les titres, les listes,
     l'alignement, l'interligne, le gras, l'italique, le souligné, le barré, les
     tailles, les couleurs, le surlignage et la police (rangée parmi les trois
-    polices de Plume). Ne sont pas repris : les images, les tableaux (leur texte
+    polices d'Omni-Texte). Ne sont pas repris : les images, les tableaux (leur texte
     devient de simples paragraphes), les notes de bas de page, les en-têtes et
     pieds de page. La police et la taille par défaut du fichier ne sont pas
-    reprises : le texte prend celles de Plume, sauf là où elles avaient été
+    reprises : le texte prend celles d'Omni-Texte, sauf là où elles avaient été
     choisies à la main. Les anciens formats (.doc, .odt, .rtf) sont refusés avec
     une explication. Le titre du nouveau document est le nom du fichier.
 19. **Typographie française** : appliquée seulement pendant la frappe (un texte
@@ -374,8 +375,8 @@ L'analyse du PDF demande aussi Python 3 avec `pdfplumber` et `pypdfium2`
 
 ## 11. Idées pour plus tard
 
-- **Correcteur d'orthographe français intégré à Plume**, qui fonctionne sans
-  connexion et ne dépend pas des réglages du navigateur. Aujourd'hui, Plume
+- **Correcteur d'orthographe français intégré à Omni-Texte**, qui fonctionne sans
+  connexion et ne dépend pas des réglages du navigateur. Aujourd'hui, Omni-Texte
   demande au navigateur de souligner les fautes en français (`spellcheck` et
   `lang="fr"`) ; cela ne marche que si le navigateur ou le clavier du téléphone
   a le dictionnaire français activé. À prévoir : un dictionnaire français libre

@@ -55,7 +55,7 @@ test('le titre du document sert de nom au fichier, l’aide ne s’affiche qu’
   await aide.getByLabel('Ne plus afficher ce message').check();
   await aide.getByRole('button', { name: 'Continuer' }).click();
   await expect.poll(() => page.evaluate(() => window.__titreImpression)).toBe('Mon rapport');
-  expect(await page.title()).toBe('Plume'); // titre d'origine remis en place
+  expect(await page.title()).toBe('Omni-Texte'); // titre d'origine remis en place
   // Deuxième export (Ctrl+P) : plus d'aide.
   await page.evaluate(() => {
     window.__titreImpression = null;

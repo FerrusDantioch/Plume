@@ -10,10 +10,10 @@ self.CONFIG_APP = Object.freeze({
   // Nom affiché partout (titre de l'onglet, fenêtre « À propos »…).
   // Attention : le fichier manifest.webmanifest contient aussi le nom
   // (voir le README, section « Changer le nom »).
-  nom: 'Plume',
+  nom: 'Omni-Texte',
 
   // Numéro de version : à augmenter à chaque publication (ex. 1.0.1).
-  version: '1.1.3',
+  version: '1.1.4',
 
   // Auteur affiché et contact.
   auteur: 'Ferrus Dantioch',

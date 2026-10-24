@@ -62,7 +62,7 @@ function remarquesLisibles({ images = 0, tableaux = 0, notes = 0 }) {
   const remarques = [];
   if (images) {
     remarques.push(
-      accorder(images, "1 image n'a pas été reprise : Plume ne gère pas les images.", "% images n'ont pas été reprises : Plume ne gère pas les images."),
+      accorder(images, "1 image n'a pas été reprise : Omni-Texte ne gère pas les images.", "% images n'ont pas été reprises : Omni-Texte ne gère pas les images."),
     );
   }
   if (tableaux) {

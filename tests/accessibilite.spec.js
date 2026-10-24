@@ -12,7 +12,7 @@ test('fenêtre « À propos » : contenu exact, Échap et bouton « Fermer », r
   const fenetre = page.locator('#fenetre-a-propos');
   await expect(fenetre).toBeVisible();
   await expect(fenetre.locator('img')).toHaveAttribute('src', 'assets/logo-omni-systeme.webp');
-  await expect(fenetre.locator('.nom-application')).toHaveText('Plume');
+  await expect(fenetre.locator('.nom-application')).toHaveText('Omni-Texte');
   await expect(fenetre.locator('.version')).toHaveText(`Version ${VERSION}`);
   await expect(fenetre).toContainText('Application réalisée par Ferrus Dantioch, avec l\'aide de Claude (Anthropic).');
   await expect(fenetre).toContainText('Tes documents restent sur cet appareil. Aucun compte, aucune donnée envoyée.');

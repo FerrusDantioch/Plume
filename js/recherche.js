@@ -1,6 +1,6 @@
 // Panneau « Rechercher et remplacer » (loupe de la barre d'outils, ou Ctrl+F).
 //
-// - La recherche ignore les majuscules : « plume » trouve aussi « Plume ».
+// - La recherche ignore les majuscules : « texte » trouve aussi « Texte ».
 // - Les accents comptent : « a » ne trouve pas « à ».
 // - L'apostrophe droite (') trouve aussi l'apostrophe typographique (’), et
 //   une espace trouve aussi les espaces insécables (ajoutées avant « ! », etc.).

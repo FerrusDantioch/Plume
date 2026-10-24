@@ -13,7 +13,7 @@ const NOUVELLE = `${VERSION}-essai`; // version fictive pour simuler une mise à
 test('une nouvelle version est annoncée, et « Recharger » l’installe', async ({ page }) => {
   // Copie de l'application dans un dossier temporaire, pour pouvoir
   // changer son numéro de version pendant le test.
-  const dossier = await mkdtemp(join(tmpdir(), 'plume-'));
+  const dossier = await mkdtemp(join(tmpdir(), 'omni-texte-'));
   await cp(RACINE, dossier, {
     recursive: true,
     filter: (source) => {
@@ -24,7 +24,7 @@ test('une nouvelle version est annoncée, et « Recharger » l’installe', asyn
   const port = 8130 + test.info().parallelIndex;
   const serveur = spawn(process.execPath, [join(dossier, 'outils', 'serveur.mjs')], { env: { ...process.env, PORT: String(port) }, stdio: 'ignore' });
   try {
-    const adresse = `http://localhost:${port}/plume/`;
+    const adresse = `http://localhost:${port}/omni-texte/`;
     await expect.poll(() => fetch(adresse).then((r) => r.ok).catch(() => false)).toBe(true);
     await page.goto(adresse);
     await page.locator('#feuille[contenteditable="true"]').waitFor();

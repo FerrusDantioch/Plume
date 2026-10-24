@@ -58,7 +58,7 @@ t.cell(0, 1).text = "Case B"
 t.cell(1, 0).text = "Case C"
 t.cell(1, 1).text = "Case D"
 # Une petite image (carré violet de 8 × 8 pixels), qui ne sera pas reprise.
-image = os.path.join(tempfile.gettempdir(), "plume-essai-image.png")
+image = os.path.join(tempfile.gettempdir(), "omni-texte-essai-image.png")
 import zlib, struct
 def bloc(type_, donnees):
     return struct.pack(">I", len(donnees)) + type_ + donnees + struct.pack(">I", zlib.crc32(type_ + donnees) & 0xFFFFFFFF)

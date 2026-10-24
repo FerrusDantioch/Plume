@@ -1,11 +1,11 @@
 // Petit serveur web local pour essayer l'application sur son ordinateur.
 // Il n'a besoin de rien d'autre que Node.js.
 //
-// Utilisation, depuis le dossier Plume :
+// Utilisation, depuis le dossier omni-texte :
 //   node outils/serveur.mjs
-// puis ouvrir http://localhost:8000/plume/ dans le navigateur.
+// puis ouvrir http://localhost:8000/omni-texte/ dans le navigateur.
 //
-// L'application est servie dans un sous-dossier (/plume/), comme sur
+// L'application est servie dans un sous-dossier (/omni-texte/), comme sur
 // GitHub Pages : cela permet de vérifier que tous les chemins sont relatifs.
 
 import { createServer } from 'node:http';
@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 
 const RACINE = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const PORT = Number(process.env.PORT) || 8000;
-const SOUS_DOSSIER = '/plume/';
+const SOUS_DOSSIER = '/omni-texte/';
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8',

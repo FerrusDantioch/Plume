@@ -1,5 +1,5 @@
 {
-  "name": "plume-tests",
+  "name": "omni-texte-tests",
   "private": true,
   "description": "Tests automatiques de l'application (navigateur réel, avec Playwright).",
   "type": "module",

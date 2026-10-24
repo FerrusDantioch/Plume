@@ -13,14 +13,14 @@ export default defineConfig({
   reporter: [['list']],
   outputDir: './resultats',
   use: {
-    baseURL: `http://localhost:${PORT}/plume/`,
+    baseURL: `http://localhost:${PORT}/omni-texte/`,
     locale: 'fr-FR',
     timezoneId: 'Europe/Paris',
   },
   webServer: {
     command: `node ../outils/serveur.mjs`,
     env: { PORT: String(PORT) },
-    url: `http://localhost:${PORT}/plume/`,
+    url: `http://localhost:${PORT}/omni-texte/`,
     reuseExistingServer: true,
   },
   projects: [

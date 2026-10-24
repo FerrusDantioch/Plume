@@ -1,16 +1,16 @@
 // Lecture d'un fichier Word (.docx) : le texte et sa mise en forme deviennent
-// un document Plume.
+// un document Omni-Texte.
 //
 // Le fichier est une archive ZIP (zip.js) contenant du XML « WordprocessingML ».
 // Ce qui est repris :
 //   paragraphes, titres (styles « heading 1 » à 3, « Title »), listes à puces
 //   et numérotées, alignement, interligne (simple, 1,5 ou double) ;
 //   gras, italique, souligné, barré, taille, police (rangée dans l'une des
-//   trois polices de Plume), couleur, surlignage, sauts de ligne, tabulations.
+//   trois polices d'Omni-Texte), couleur, surlignage, sauts de ligne, tabulations.
 // Ce qui ne l'est pas (signalé à l'utilisateur) : images, tableaux (leur
 // texte devient de simples paragraphes), notes de bas de page.
 // La police et la taille par défaut du fichier ne sont pas reprises : le texte
-// prend celles de Plume, sauf là où elles avaient été choisies à la main.
+// prend celles d'Omni-Texte, sauf là où elles avaient été choisies à la main.
 //
 // Le résultat est ensuite nettoyé par sanitize.js, comme tout document.
 
@@ -27,7 +27,7 @@ const SURLIGNAGES = {
   darkYellow: '808000', darkGray: '808080', lightGray: 'c0c0c0', black: '000000', white: 'ffffff',
 };
 
-/** Range une police de Word dans l'une des trois polices de Plume (null : police par défaut). */
+/** Range une police de Word dans l'une des trois polices d'Omni-Texte (null : police par défaut). */
 export function familleDePolice(nom) {
   const n = String(nom ?? '').toLowerCase();
   if (!n) return null;

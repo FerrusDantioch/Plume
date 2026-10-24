@@ -78,7 +78,7 @@ for (const nom of ['exemple-word.docx', 'exemple-libreoffice.docx']) {
     await expect(question.locator('h2')).toHaveText('Fichier ouvert');
     await expect(question.locator('.question-message')).toHaveText(
       `« ${nom.replace('.docx', '')} » est ouvert dans un nouveau document. Le fichier d'origine n'est pas modifié. ` +
-        "1 image n'a pas été reprise : Plume ne gère pas les images. Le tableau a été transformé en simples paragraphes.",
+        "1 image n'a pas été reprise : Omni-Texte ne gère pas les images. Le tableau a été transformé en simples paragraphes.",
     );
     await question.getByRole('button', { name: 'Compris' }).click();
     await expect(page.locator('#tiroir-documents')).toBeHidden();
