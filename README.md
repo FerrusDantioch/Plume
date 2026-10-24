@@ -121,7 +121,7 @@ Sans changement de version, les utilisateurs gardent l'ancienne version
   Le manifeste est un fichier de données (JSON) : il ne peut pas lire `config.js`,
   c'est pourquoi le nom y est recopié. Un test automatique vérifie que les deux
   correspondent. Le titre de la page et la fenêtre « À propos » suivent `config.js`.
-- **Version** : dans `js/config.js`, ligne `version: '1.1.4',` (version actuelle).
+- **Version** : dans `js/config.js`, ligne `version: '1.1.5',` (version actuelle).
 - **Ne change jamais** `idStockage: 'plume'` : c'est le nom de la base de données ;
   le changer rendrait les documents existants invisibles.
 - **Icônes** : elles sont créées par `outils/creer-icones.py` (Python et la
@@ -387,14 +387,16 @@ L'analyse du PDF demande aussi Python 3 avec `pdfplumber` et `pypdfium2`
 
 ## 12. Licence
 
-Distribué sous licence **[Creative Commons BY-NC-ND 4.0](LICENSE)**
-(Attribution - Utilisation non commerciale - Pas d'Œuvre dérivée), avec le
-texte officiel en anglais et sa traduction française officielle.
+**© 2026 Ferrus Dantioch — Creative Commons BY-NC-ND 4.0**
+([résumé de la licence en français](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.fr))
 
-Ce logiciel peut être utilisé et partagé en copies identiques, gratuitement, à
-condition de citer l'auteur (Ferrus Dantioch) et d'indiquer la licence. Il est
-interdit de le vendre ou d'en tirer un profit commercial, et de diffuser une
-version modifiée. Le logiciel est fourni « en l'état », sans aucune garantie.
+En clair : le partage est autorisé, à l'identique et en citant l'auteur ;
+l'usage commercial est interdit ; la modification et les œuvres dérivées
+sont interdites. Le logiciel est fourni « en l'état », sans aucune garantie.
+
+Texte complet dans le fichier [LICENSE](LICENSE) : le texte officiel en
+anglais, suivi de la traduction française officielle publiée par Creative
+Commons.
 
 Les polices (dossier `fonts/`) gardent leur propre licence : voir les fichiers
 `fonts/LICENCE-*.txt`.

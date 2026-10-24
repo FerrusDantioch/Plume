@@ -13,7 +13,7 @@ self.CONFIG_APP = Object.freeze({
   nom: 'Omni-Texte',
 
   // Numéro de version : à augmenter à chaque publication (ex. 1.0.1).
-  version: '1.1.4',
+  version: '1.1.5',
 
   // Auteur affiché et contact.
   auteur: 'Ferrus Dantioch',
